@@ -9,9 +9,9 @@ export default function Productos() {
   const { getProductos, productos } = useProductos();
   useEffect(() => {
     if (loading) {
-      toast.loading("Cargando...");
-      setLoading(false);
       getProductos();
+      // toast.loading("Cargando ...");
+      setLoading(false);
     }
   }, [loading]);
 
@@ -25,7 +25,7 @@ export default function Productos() {
           <ModalProductos setLoading={setLoading} />
         </div>
         <div className="overflow-x-auto">
-          <Table striped className="text-xs md:text-lg">
+          <Table striped className="text-xs">
             <Table.Head>
               <Table.HeadCell>Referencia</Table.HeadCell>
               <Table.HeadCell>Nombre</Table.HeadCell>

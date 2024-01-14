@@ -1,4 +1,4 @@
-import { Button, Modal, TextInput, Label } from "flowbite-react";
+import { Button, Modal, TextInput, Label, Textarea } from "flowbite-react";
 import { useState } from "react";
 import { FaPlus } from "react-icons/fa";
 import { useFormik } from "formik";
@@ -14,10 +14,12 @@ export default function ModalModulos({ edificioId, setLoading }) {
       nombre: "",
       capacidad_bidones: 2,
       password: "",
+      observacion: "",
     },
     validationSchema: Yup.object({
       capacidad_bidones: Yup.number().required("Campo requerido"),
       password: Yup.string().required("Campo requerido"),
+      observacion: Yup.string(),
     }),
     onSubmit: (values) => {
       const data_form = {
@@ -109,6 +111,19 @@ export default function ModalModulos({ edificioId, setLoading }) {
                     ? formik.errors.password
                     : null}
                 </small>
+              </div>
+              <div>
+                <div className="mb-2 block">
+                  <Label htmlFor="observacion" value="Observación" />
+                </div>
+                <Textarea
+                  onChange={formik.handleChange}
+                  value={formik.values.observacion}
+                  className="p-1"
+                  id="observacion"
+                  placeholder="El modulo tiene una nota especial..."
+                  rows={4}
+                />
               </div>
             </div>
           </div>

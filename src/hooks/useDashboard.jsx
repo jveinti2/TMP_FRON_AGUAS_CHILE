@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { useContext, useEffect } from "react";
 import { DashboardContext } from "../context/Dashboard";
 import { getProductosApi } from "../services/productos.services";
 import { getEdificios } from "../services/edificios.services";
 import { getClientes } from "../services/clientes.services";
 import toast from "react-hot-toast";
+import Echo from "laravel-echo";
 
 export default function useDashboard() {
   const { setDashboard, loading, setLoading } = useContext(DashboardContext);
+  const [isToastShown, setIsToastShown] = useState(false);
 
   useEffect(() => {
     if (loading) {
@@ -15,6 +18,31 @@ export default function useDashboard() {
       console.log("useDashboard");
     }
   }, [loading]);
+
+  useEffect(() => {
+    const options = {
+      broadcaster: "pusher",
+      key: import.meta.env.VITE_PUSHER_APP_KEY, // Gm8VwE4c9fcgztt1eyHu
+      wsHost: "api.quickconnection.com.co",
+      cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+      wsPort: 2088,
+      wssPort: 2088,
+      disableStats: true,
+      enabledTransports: ["ws", "wss"],
+      forceTLS: true,
+    };
+
+    const echo = new Echo(options);
+
+    echo
+      .channel("notification-delivery")
+      .listen("NotificationDeliveryEvent", (event) => {
+        setTimeout(() => {
+          setLoading(true);
+          toast.dismiss();
+        }, 1000);
+      });
+  }, []);
 
   const getDashboard = async () => {
     toast.loading("Cargando...");

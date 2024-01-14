@@ -68,7 +68,7 @@ export default function ModalClientes({
       direccion_domicilio: "",
       apartamento: "",
       edificio_id: "",
-      sw_novedad: 0,
+      sw_novedad: false,
       descripcion: "",
     },
     validationSchema: Yup.object({

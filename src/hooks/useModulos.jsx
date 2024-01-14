@@ -4,6 +4,7 @@ import {
   postModuloEdificio,
   postPasswordApi,
   postReloadModulosApi,
+  postObservacionModuloApi,
 } from "../services/modulos.services";
 import toast from "react-hot-toast";
 
@@ -56,11 +57,28 @@ export default function useModulos() {
       .catch((error) => console.log(error));
   };
 
+  const postObservacionModulo = async (data) => {
+    toast.loading("Guardando observación...");
+    try {
+      const response = await postObservacionModuloApi(data);
+      if (response.status === 200) {
+        toast.success(response.mensaje);
+      }
+      return response.modulo;
+    } catch (error) {
+      toast.error(error.response.data.mensaje);
+      throw error;
+    } finally {
+      toast.dismiss();
+    }
+  };
+
   return {
     modulos,
     getModulosByEdificio,
     postModulo,
     postPassword,
     postReloadModulos,
+    postObservacionModulo,
   };
 }

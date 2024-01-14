@@ -8,6 +8,7 @@ import {
   Checkbox,
   Select as Select2,
   Datepicker,
+  Textarea,
 } from "flowbite-react";
 import Select from "react-select";
 import { useFormik } from "formik";
@@ -20,12 +21,14 @@ import { getDomiciliariosApi } from "../services/domiciliarios.services";
 import { getListaFormasPagoApi } from "../services/listas.services";
 import ModalClientes from "./ModalClientes";
 import toFormatDate from "../utils/toFormatDate";
-import { toFormData } from "axios";
 
 export default function ModalVentas({ ventaEdit }) {
   const [novedad, setNovedad] = useState("");
   const [selectedOption, setSelectedOption] = useState(null);
-  const [fechaVenta, setFechaVenta] = useState();
+  const [fechaVenta, setFechaVenta] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
+
   const [filterClienteSelected, setFilterClienteSelected] = useState("");
   const [clienteCreated, setClienteCreated] = useState();
   const [loadingModalVenta, setLoadingModalVenta] = useState(false);
@@ -43,6 +46,17 @@ export default function ModalVentas({ ventaEdit }) {
   const modalVenta = true;
 
   useEffect(() => {
+    // seleccionar el elemento con id fh_creacion y name fh_creacion
+    const dateInput = document.querySelector(
+      "#fh_creacion[name='fh_creacion']"
+    );
+
+    if (dateInput) {
+      dateInput.addEventListener("click", function () {
+        dateInput.showPicker();
+      });
+    }
+
     if (loading) {
       setSelectedOption(null);
       getListClientes();
@@ -77,21 +91,25 @@ export default function ModalVentas({ ventaEdit }) {
     if (edificio !== undefined) return setModulos(edificio.modulos);
   };
 
-  const clientesMapping = clientes.map((cliente) => {
-    return {
-      value: cliente.id,
-      // añadir icono para saber que es u cliente marcado
-      label: cliente.sw_novedad
-        ? `⚠️ ${cliente.nombres} / ${cliente.telefono} / ${cliente.direccion_domicilio}`
-        : `${cliente.nombres} / ${cliente.telefono} / ${cliente.direccion_domicilio}`,
-      direccion_domicilio: cliente.direccion_domicilio,
-      apartamento: cliente.apartameto,
-      edificio_id: cliente.edificio_id,
-      edificio: cliente.edificio,
-      sw_novedad: cliente.sw_novedad,
-      descripcion: cliente.descripcion,
-    };
-  });
+  const clientesMapping = clientes
+    .filter((cliente) => cliente.estado == 1)
+    .map((cliente) => {
+      return {
+        value: cliente.id,
+        // añadir icono para saber que es u cliente marcado
+        label: cliente.sw_novedad
+          ? `⚠️ ${cliente.nombres} / ${cliente.telefono} / ${cliente.direccion_domicilio}`
+          : `${cliente.nombres} / ${cliente.telefono} / ${cliente.direccion_domicilio}`,
+        direccion_domicilio: cliente.direccion_domicilio,
+        apartamento: cliente.apartameto,
+        edificio_id: cliente.edificio_id,
+        edificio: cliente.edificio,
+        sw_novedad: cliente.sw_novedad,
+        descripcion: cliente.descripcion,
+        estado: cliente.estado,
+      };
+    });
+
   const edificiosMapping = edificios.map((edificio) => {
     return {
       value: edificio.id,
@@ -134,8 +152,12 @@ export default function ModalVentas({ ventaEdit }) {
       direccion_domicilio: "",
       apartamento: "",
       donacion: false,
+      observacion: "",
+      turno_tarde: false,
     },
     validationSchema: Yup.object({
+      turno_tarde: Yup.boolean(),
+      observacion: Yup.string(),
       domicilio: Yup.boolean(),
       donacion: Yup.boolean(),
       cliente: Yup.string().required("El cliente es obligatorio"),
@@ -174,7 +196,9 @@ export default function ModalVentas({ ventaEdit }) {
 
     onSubmit: (values) => {
       values.fh_creacion = document.getElementById("fh_creacion").value;
-      values.fh_creacion = toFormatDate(values.fh_creacion);
+      // values.fh_creacion = toFormatDate(values.fh_creacion);
+
+      console.log(values);
       try {
         postVenta(values);
         setOpenModal(undefined);
@@ -272,7 +296,12 @@ export default function ModalVentas({ ventaEdit }) {
           setOpenModal(undefined) ||
           formik.resetForm() ||
           setNovedad("") ||
-          setModulos([])
+          setModulos([]) ||
+          setFechaVenta(
+            new Date()
+              .toLocaleString("en-US", { timeZone: "America/Santiago" })
+              .slice(0, 16)
+          )
         }
       >
         <Modal.Header>
@@ -331,7 +360,22 @@ export default function ModalVentas({ ventaEdit }) {
                 <div className="mb-2 block">
                   <Label htmlFor="fh_creacion" value="Fecha de venta" />
                 </div>
-                <Datepicker id="fh_creacion" name="fh_creacion" />
+                <input
+                  id="fh_creacion"
+                  name="fh_creacion"
+                  className=" w-full  px-2 rounded-md border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent
+                  dark:bg-[#171e29] dark:border-gray-600 dark:text-white dark:focus:ring-[#1d4ed8] dark:focus:border-transparent
+                  "
+                  type="date"
+                  value={fechaVenta}
+                  onChange={(e) => setFechaVenta(e.target.value)}
+                />
+                {/* <Datepicker
+                  id="fh_creacion"
+                  name="fh_creacion"
+                  labelClearButton="Limpiar"
+                  labelTodayButton="Hoy"
+                /> */}
               </div>
               <div>
                 <div className="mb-2 block">
@@ -516,6 +560,22 @@ export default function ModalVentas({ ventaEdit }) {
                         : null}
                     </small>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="turno_tarde"
+                      name="turno_tarde"
+                      onChange={() => {
+                        formik.setFieldValue(
+                          "turno_tarde",
+                          !formik.values.turno_tarde
+                        );
+                      }}
+                      checked={formik.values.turno_tarde}
+                    />
+                    <Label className="flex" htmlFor="turno_tarde">
+                      <p>¿es turno tarde?</p>
+                    </Label>
+                  </div>
                 </>
               ) : null}
               {formik.values.domicilio == false ? (
@@ -580,7 +640,7 @@ export default function ModalVentas({ ventaEdit }) {
                       onBlur={() =>
                         setBidonesDisponibles(
                           modulos.find(
-                            (modulo) => modulo.id == formik.values.modulo
+                            (modulo) => modulo.modulo_id == formik.values.modulo
                           ).cantidad_bidones
                         )
                       }
@@ -588,7 +648,7 @@ export default function ModalVentas({ ventaEdit }) {
                       <option>Seleccione un modulo</option>
                       {modulos.map((modulo) => {
                         return (
-                          <option value={modulo.id} key={modulo.id}>
+                          <option value={modulo.modulo_id} key={modulo.id}>
                             {modulo.nombre} - {modulo.cantidad_bidones} bidones
                           </option>
                         );
@@ -646,6 +706,20 @@ export default function ModalVentas({ ventaEdit }) {
                     : null}
                 </small>
               </div>
+              <div>
+                <div className="mb-2 block">
+                  <Label htmlFor="observacion" value="Observación" />
+                </div>
+                <Textarea
+                  className="p-1"
+                  id="observacion"
+                  placeholder="Observación"
+                  name="observacion"
+                  rows={4}
+                  onChange={formik.handleChange}
+                  value={formik.values.observacion}
+                />
+              </div>
             </div>
           </div>
         </Modal.Body>
@@ -657,7 +731,12 @@ export default function ModalVentas({ ventaEdit }) {
               setOpenModal(undefined) ||
               formik.resetForm() ||
               setNovedad("") ||
-              setModulos([])
+              setModulos([]) ||
+              setFechaVenta(
+                new Date()
+                  .toLocaleString("en-US", { timeZone: "America/Santiago" })
+                  .slice(0, 16)
+              )
             }
           >
             Cancelar

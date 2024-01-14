@@ -16,6 +16,7 @@ import {
   FaTriangleExclamation,
   FaHeartCircleExclamation,
   FaCircleRadiation,
+  FaCircleCheck,
 } from "react-icons/fa6";
 import { toast } from "react-hot-toast";
 import { toFormData } from "axios";
@@ -29,6 +30,7 @@ export default function Clientes() {
     setClientes,
     getListClientes,
     deleteClienteApi,
+    activeClienteApi,
     markedCliente,
   } = useClientes();
 
@@ -74,7 +76,7 @@ export default function Clientes() {
   const inactivarCliente = (cliente) => {
     toast(
       <div>
-        ¿Está seguro que desea inactivar el cliente {cliente.nombres}?
+        ¿Está seguro que desea <b>inactivar</b> el cliente {cliente.nombres}?
         <div className="flex justify-end gap-2 mt-4">
           <Button
             onClick={() => {
@@ -85,14 +87,44 @@ export default function Clientes() {
           </Button>
           <Button
             onClick={() => {
-              deleteClienteApi(cliente.id)
-                .then((response) => {
-                  if (response.status === 200) {
-                    setLoading(true);
-                  }
-                })
-                .catch((error) => console.log(error));
+              deleteClienteApi(cliente.id);
+              try {
+                setTimeout(() => {
+                  setLoading(true);
+                }, 1000);
+              } catch (error) {
+                toast.error("Error al inactivar el cliente");
+              }
+            }}
+          >
+            Aceptar
+          </Button>
+        </div>
+      </div>
+    );
+  };
+  const activarCliente = (cliente) => {
+    toast(
+      <div>
+        ¿Está seguro que desea <b>activar</b> el cliente {cliente.nombres}?
+        <div className="flex justify-end gap-2 mt-4">
+          <Button
+            onClick={() => {
               toast.dismiss();
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={() => {
+              activeClienteApi(cliente.id);
+              try {
+                setTimeout(() => {
+                  setLoading(true);
+                }, 1000);
+              } catch (error) {
+                toast.error("Error al activar el cliente");
+              }
             }}
           >
             Aceptar
@@ -230,9 +262,13 @@ export default function Clientes() {
     direccion_domicilio: cliente.direccion_domicilio,
     apartameto: cliente.apartameto,
     edificio: cliente.edificio,
+    edificio_id: cliente.edificio_id,
     telefono: cliente.telefono,
-    descripcion: cliente.descripcion,
     ultima_compra: cliente.fh_ultima_compra,
+    descripcion: cliente.descripcion,
+    sw_novedad: cliente.sw_novedad,
+    fh_ultima_compra: cliente.fh_ultima_compra,
+    estado: cliente.estado,
     // descripcion: cliente.sw_novedad ? (
     //   <Tooltip content={cliente.descripcion}>
     //     <FaTriangleExclamation size={15} />
@@ -266,6 +302,18 @@ export default function Clientes() {
     ),
   }));
 
+  // Pagination
+  const PageSize = 10; // Número de elementos por página
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(data.length / PageSize);
+  const startIndex = (currentPage - 1) * PageSize;
+  const endIndex = startIndex + PageSize;
+  const currentData = data.slice(startIndex, endIndex);
+
+  const onPageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
   return (
     <div className="p-1 md:p-5 w-full  overflow-auto h-full">
       <div className="space-y-2 mb-20">
@@ -290,11 +338,11 @@ export default function Clientes() {
         /> */}
         <TextInput
           placeholder="Buscar"
-          // value={filtro}
-          // onChange={handleFiltroChange}
+          value={filtro}
+          onChange={handleFiltroChange}
         />
         <div className="overflow-x-auto">
-          <Table striped className="text-xs">
+          <Table className="text-xs">
             <Table.Head>
               <Table.HeadCell>Identificacion</Table.HeadCell>
               <Table.HeadCell>Nombre</Table.HeadCell>
@@ -309,11 +357,17 @@ export default function Clientes() {
               </Table.HeadCell>
             </Table.Head>
             <Table.Body className="divide-y">
-              {clientes.length > 0 ? (
-                clientes.map((cliente) => (
+              {currentData.length > 0 ? (
+                currentData.map((cliente) => (
                   <Table.Row
                     key={cliente.id}
-                    className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                    className={`bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white
+                      ${
+                        cliente.estado != 1
+                          ? " bg-gray-200 font-semibold  border-gray-600 dark:bg-gray-800 dark:text-gray-500"
+                          : null
+                      }
+                      `}
                   >
                     <Table.Cell className="">
                       {cliente.identificacion}
@@ -347,12 +401,24 @@ export default function Clientes() {
                         clienteEdit={cliente}
                         setLoading={setLoading}
                       />
-                      <FaTrash
-                        onClick={() => inactivarCliente(cliente)}
-                        size={"20"}
-                        color="red"
-                        className="cursor-pointer hover:text-red-500"
-                      />
+                      {cliente.estado == 1 ? (
+                        <Button
+                          size={"xs"}
+                          color="failure"
+                          onClick={() => inactivarCliente(cliente)}
+                        >
+                          <FaTrash size={"15"} />
+                        </Button>
+                      ) : (
+                        <Button
+                          size={"xs"}
+                          color="success"
+                          onClick={() => activarCliente(cliente)}
+                        >
+                          <FaCircleCheck size={15} />
+                        </Button>
+                      )}
+
                       {!cliente.sw_novedad && (
                         <Button
                           size={"xs"}
@@ -366,13 +432,20 @@ export default function Clientes() {
                 ))
               ) : (
                 <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
-                  <Table.Cell colSpan="7" className="text-center">
+                  <Table.Cell colSpan="9" className="text-center">
                     <p>No hay clientes registrados</p>
                   </Table.Cell>
                 </Table.Row>
               )}
             </Table.Body>
           </Table>
+          <div className="flex overflow-x-auto sm:justify-center">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+            />
+          </div>
         </div>
       </div>
     </div>

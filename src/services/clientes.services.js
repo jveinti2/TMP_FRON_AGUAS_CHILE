@@ -26,6 +26,15 @@ export const deleteCliente = async (id) => {
     throw error;
   }
 };
+export const activeCliente = async (id) => {
+  try {
+    const response = await api.post("clientes/activar", { id });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
 
 export const markedClienteApi = async (data) => {
   try {

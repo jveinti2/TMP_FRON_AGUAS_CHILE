@@ -18,10 +18,12 @@ import {
   FaPlus,
   FaCircleExclamation,
   FaCircleMinus,
+  FaCircleInfo,
 } from "react-icons/fa6";
 import useModulos from "../hooks/useModulos";
 import { DashboardContext } from "../context/Dashboard";
 import ButtonReload from "./ButtonReload";
+import ModalObservacionModulo from "./ModalObservacionModulo";
 import useDashboard from "../hooks/useDashboard";
 
 export default function AcordionEdificios() {
@@ -365,20 +367,46 @@ export default function AcordionEdificios() {
   };
 
   const addBidonesAllModulos = async (edificio) => {
-    toast.loading("Recargando modulos...");
     const value = {
       edificio_id: edificio.id,
     };
-    postReloadModulos(value)
-      .then((response) => {
-        toast.success("Se recargaron todos los modulos");
-        setLoading(true);
-        toast.dismiss();
-      })
-      .catch((error) => {
-        toast.error(error);
-        console.log(error);
-      });
+
+    toast(
+      <div className="p-2">
+        <h3 className="text-lg font-semibold">
+          Recargar todos los modulos de {edificio.nombre}
+        </h3>
+        <p>¿Está seguro de recargar todos los modulos?</p>
+        <div className="space-y-2">
+          <div className="flex justify-center gap-2">
+            <Button
+              size={"xs"}
+              color="success"
+              onClick={async () => {
+                await postReloadModulos(value);
+                setIsAccordionCollapsed(false);
+                setLoading(true);
+                toast.dismiss();
+              }}
+            >
+              Actualizar
+            </Button>
+            <Button
+              size={"xs"}
+              color="failure"
+              onClick={() => {
+                toast.dismiss();
+              }}
+            >
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      </div>,
+      {
+        duration: 10000,
+      }
+    );
   };
 
   const editNombreModulo = (modulo) => {
@@ -470,7 +498,7 @@ export default function AcordionEdificios() {
                       </Badge>
                     </Tooltip>
 
-                    {cantidadBindonesEdificio(edificio) <= 6 ? (
+                    {cantidadBindonesEdificio(edificio) <= 4 ? (
                       <Badge color="red">
                         <span className="flex items-center gap-2">
                           <span className="hidden md:block">
@@ -539,6 +567,7 @@ export default function AcordionEdificios() {
                       </span>
                     </Table.HeadCell>
                     <Table.HeadCell className="p-1">Contraseña</Table.HeadCell>
+                    <Table.HeadCell className="p-1">Observación</Table.HeadCell>
                   </Table.Head>
                   <Table.Body
                     className="divide-y
@@ -589,6 +618,12 @@ export default function AcordionEdificios() {
                               onClick={() => {
                                 updatePassword(edificio, modulo);
                               }}
+                            />
+                          </Table.Cell>
+                          <Table.Cell>
+                            <ModalObservacionModulo
+                              modulo={modulo}
+                              setLoading={setLoading}
                             />
                           </Table.Cell>
                         </Table.Row>

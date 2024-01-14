@@ -3,20 +3,22 @@ import {
   Badge,
   Button,
   TextInput,
-  Datepicker,
+  // Datepicker,
   Accordion,
 } from "flowbite-react";
 import { useState, useEffect } from "react";
-import { getVentasApi, postDomicilioApi } from "../services/ventas.services";
+import { getVentasApi } from "../services/ventas.services";
 import toast from "react-hot-toast";
 import toMoney from "../utils/toMoney";
-import { FaPen, FaWhatsapp } from "react-icons/fa6";
+import { FaPen, FaWhatsapp, FaSun, FaMoon } from "react-icons/fa6";
 import useFormaPago from "../hooks/useFormaPago";
-import FiltroFechaDespacho from "../components/FiltroFechaDespacho";
+// import FiltroFechaDespacho from "../components/FiltroFechaDespacho";
 import toFormatDate from "../utils/toFormatDate";
 import { getDomiciliariosApi } from "../services/domiciliarios.services";
 import ButtonReload from "../components/ButtonReload";
 import ModalDetalle from "../components/ModalDetalle";
+import ModalObservacionVenta from "../components/ModalObservacionVenta";
+import Echo from "laravel-echo";
 
 import {
   postRecogerBidonesApi,
@@ -29,8 +31,9 @@ export default function Despachos() {
   const [domiciliosPendientes, setDomiciliosPendientes] = useState([]);
   const [bidonesPendientes, setBidonesPendientes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { handleEntregarDomicilio, handleFormaPago } = useFormaPago(setLoading);
+  const { handleEntregarDomicilio, handleFormaPago } = useFormaPago();
   const [domiciliarios, setDomiciliarios] = useState([]);
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
 
   useEffect(() => {
     if (loading) {
@@ -41,11 +44,35 @@ export default function Despachos() {
       });
       getDomiciliariosApi().then((response) => {
         setDomiciliarios(response.domiciliarios);
-        console.log(response.domiciliarios);
       });
       setLoading(false);
     }
   }, [loading]);
+
+  useEffect(() => {
+    const options = {
+      broadcaster: "pusher",
+      key: import.meta.env.VITE_PUSHER_APP_KEY, // Gm8VwE4c9fcgztt1eyHu
+      wsHost: "api.quickconnection.com.co",
+      cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+      wsPort: 2088,
+      wssPort: 2088,
+      disableStats: true,
+      enabledTransports: ["ws", "wss"],
+      forceTLS: true,
+    };
+
+    const echo = new Echo(options);
+
+    echo
+      .channel("notification-delivery")
+      .listen("NotificationDeliveryEvent", (event) => {
+        setTimeout(() => {
+          setLoading(true);
+          toast.dismiss();
+        }, 1000);
+      });
+  }, []);
 
   const sendWhatsapp = (telefono) => {
     window.open(`https://api.whatsapp.com/send?phone=${telefono}&text=Hola,`);
@@ -76,6 +103,7 @@ export default function Despachos() {
   };
 
   const handleDateChange = (date) => {
+    setDate(date);
     data_form.fh_creacion = date;
     getVentasApi(data_form).then((response) => {
       setDomicilios(response.ventas.filter((venta) => venta.domicilio));
@@ -200,13 +228,31 @@ export default function Despachos() {
   };
 
   const realoadData = () => {
-    console.log("realoadData");
+    setDate(new Date().toISOString().slice(0, 10));
     toast.loading("Cargando...");
     setTimeout(() => {
       setLoading(true);
       toast.dismiss();
     }, 2000);
   };
+
+  useEffect(() => {
+    const dateInput = document.getElementById("date");
+
+    if (dateInput) {
+      dateInput.addEventListener("click", function () {
+        dateInput.showPicker();
+      });
+    }
+
+    return () => {
+      if (dateInput) {
+        dateInput.removeEventListener("click", function () {
+          dateInput.showPicker();
+        });
+      }
+    };
+  }, []);
 
   return (
     <div className="p-1 md:p-5 w-full  overflow-auto h-full">
@@ -216,186 +262,449 @@ export default function Despachos() {
             Modulo de despachos
           </h2>
         </div>
-
-        <div className="space-y-2">
-          <div className="">
-            <h2 className="text-lg md:text-xl font-semibold leading-tight dark:text-white">
-              Domicilios
-            </h2>
-            <div className="md:w-1/4 flex items-center gap-2">
-              <Datepicker
-                className="w-full"
-                language="es-ES"
-                labelClearButton="Limpiar"
-                labelTodayButton="Hoy"
-                onSelectedDateChanged={handleDateChange}
-              />
-              <ButtonReload functionName={realoadData} />
-            </div>
-          </div>
-          <TextInput
-            className="text-sm md:text-base"
-            placeholder="Buscar"
-            value={filtro}
-            onChange={handleFiltroChange}
+        <div className="md:w-1/4 flex items-center gap-2">
+          {/* <Datepicker
+              className="w-full"
+              language="es-ES"
+              labelClearButton="Limpiar"
+              labelTodayButton="Hoy"
+              onSelectedDateChanged={handleDateChange}
+            /> */}
+          <input
+            id="date"
+            type="date"
+            className=" w-full md:w-1/2 px-2 rounded-md border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent
+            dark:bg-[#171e29] dark:border-gray-600 dark:text-white dark:focus:ring-[#1d4ed8] dark:focus:border-transparent
+            "
+            value={date}
+            onChange={(e) => {
+              handleDateChange(e.target.value);
+            }}
           />
-          <div className="overflow-x-auto">
-            <Table className="text-xs shadow-xl">
-              <Table.Head>
-                <Table.HeadCell>Nro. Venta</Table.HeadCell>
-                <Table.HeadCell>Dirección</Table.HeadCell>
-                <Table.HeadCell>Domiciliario</Table.HeadCell>
-                <Table.HeadCell>Cantidad bidones</Table.HeadCell>
-                <Table.HeadCell>Producto</Table.HeadCell>
-                <Table.HeadCell>Valor domicilio</Table.HeadCell>
-                <Table.HeadCell>Forma de pago</Table.HeadCell>
-                <Table.HeadCell>Estado</Table.HeadCell>
-                <Table.HeadCell>
-                  <span className="sr-only">Edit</span>
-                </Table.HeadCell>
-              </Table.Head>
-              <Table.Body className="divide-y">
-                {domicilios.length > 0 ? (
-                  domiciliosFiltrados.map((domicilio) => (
-                    <Table.Row
-                      key={domicilio.id}
-                      className={`bg-white dark:border-gray-700 dark:bg-gray-800 
-                      ${
-                        domicilio.estado_domicilio != 2
-                          ? " bg-[#59b377] font-semibold text-white border-gray-600 dark:bg-[#3e7e54] dark:text-white"
-                          : null
-                      }
-                      `}
-                    >
-                      <Table.Cell># {domicilio.venta_id}</Table.Cell>
-                      <Table.Cell>{`${domicilio.direccion_domicilio}`}</Table.Cell>
-                      <Table.Cell className="flex items-center gap-2">
-                        {domicilio.domiciliario_nombres === null ? null : (
-                          <>
-                            <Button size={"xs"}>
-                              <FaPen
-                                className=" cursor-pointer"
-                                onClick={() =>
-                                  handleUpdateDomiciliario(
-                                    domicilio.venta_id,
-                                    setLoading
-                                  )
-                                }
-                              />
-                            </Button>
-                            {domicilio.domiciliario_nombres}{" "}
-                            {domicilio.domiciliario_apellidos}
-                          </>
-                        )}
-                      </Table.Cell>
-                      <Table.Cell>{domicilio.cantidad_bidones}</Table.Cell>
-                      <Table.Cell>{domicilio.producto}</Table.Cell>
-                      <Table.Cell>
-                        {toMoney(
-                          parseInt(domicilio.precio) *
-                            parseInt(domicilio.cantidad_bidones)
-                        )}
-                      </Table.Cell>
-
-                      <Table.Cell className="flex items-center gap-2">
-                        {domicilio.forma_pago_nombre === null ? null : (
-                          <>
-                            <Button size={"xs"}>
-                              <FaPen
-                                className="cursor-pointer"
-                                onClick={() =>
-                                  handleFormaPago(
-                                    domicilio.venta_id,
-                                    2,
-                                    setLoading,
-                                    domicilio.domiciliario_id,
-                                    domicilio.sw_domicilio_recogida
-                                  )
-                                }
-                              />
-                            </Button>
-                            {domicilio.forma_pago_nombre}
-                          </>
-                        )}
-                      </Table.Cell>
-                      <Table.Cell>
-                        <Badge
-                          className="shadow-xl"
-                          color={
-                            domicilio.estado_domicilio === 1
-                              ? "success"
-                              : domicilio.estado_domicilio === 2
-                              ? "warning"
-                              : "failure"
-                          }
-                        >
-                          {domicilio.estado_domicilio_nombre}
-                        </Badge>
-                      </Table.Cell>
-                      <Table.Cell>
-                        <div className="flex items-center gap-2">
-                          <ModalDetalle venta={domicilio} />
-                          <FaWhatsapp
-                            onClick={() => {
-                              sendWhatsapp(domicilio.telefono);
-                            }}
-                            className={`cursor-pointer text-green-500 hover:text-green-700
-                            ${
-                              domicilio.estado_domicilio != 2
-                                ? " bg-[#59b377] font-semibold text-white border-gray-600 dark:bg-[#3e7e54] dark:text-white"
-                                : null
-                            }
-                            `}
-                            size={22}
-                          />
-                          {/* Buttón con el flujo completo */}
-                          {domicilio.estado_domicilio === 2 && (
-                            <Button
-                              onClick={() =>
-                                handleEntregarDomicilio(
-                                  domicilio,
-                                  1,
-                                  setLoading
-                                )
-                              }
-                              size={"xs"}
-                              className="bg-blue-500 hover:bg-blue-700"
-                            >
-                              Entregar
-                            </Button>
-                          )}
-
-                          {/* Botón solo forma de pago */}
-                          {domicilio.estado_domicilio === 3 && (
-                            <Button
-                              onClick={() =>
-                                handleFormaPago(
-                                  domicilio.venta_id,
-                                  1,
-                                  setLoading,
-                                  domicilio.domiciliario_id,
-                                  domicilio.sw_domicilio_recogida
-                                )
-                              }
-                              size={"xs"}
-                              className="bg-blue-500 hover:bg-blue-700"
-                            >
-                              Facturar
-                            </Button>
-                          )}
-                        </div>
-                      </Table.Cell>
-                    </Table.Row>
-                  ))
-                ) : (
-                  <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
-                    <Table.Cell colSpan={10}>No hay ventas</Table.Cell>
-                  </Table.Row>
-                )}
-              </Table.Body>
-            </Table>
-          </div>
+          <ButtonReload functionName={realoadData} />
         </div>
+
+        <Accordion collapseAll>
+          <Accordion.Panel>
+            <Accordion.Title className="bg-white dark:bg-gray-800 py-3">
+              <span>Domicilios</span>
+            </Accordion.Title>
+            <Accordion.Content className="p-1 pt-2">
+              <div className="space-y-2">
+                <TextInput
+                  className="text-sm md:text-base"
+                  placeholder="Buscar"
+                  value={filtro}
+                  onChange={handleFiltroChange}
+                />
+                <div className="overflow-x-auto">
+                  <Table className="text-xs shadow-xl">
+                    <Table.Head>
+                      <Table.HeadCell colSpan={11}>
+                        <span className="flex items-center gap-2">
+                          <FaSun className="text-yellow-500" size={22} />
+                          <b className="dark:text-white ">
+                            Turno de la mañana{" "}
+                          </b>
+                        </span>
+                      </Table.HeadCell>
+                    </Table.Head>
+                    <Table.Head>
+                      <Table.HeadCell>Nro. Venta</Table.HeadCell>
+                      {/* <Table.HeadCell>Turno</Table.HeadCell> */}
+                      <Table.HeadCell>Dirección</Table.HeadCell>
+                      <Table.HeadCell>Domiciliario</Table.HeadCell>
+                      <Table.HeadCell>Cantidad bidones</Table.HeadCell>
+                      <Table.HeadCell>Producto</Table.HeadCell>
+                      <Table.HeadCell>Valor domicilio</Table.HeadCell>
+                      <Table.HeadCell>Observación</Table.HeadCell>
+                      <Table.HeadCell>Forma de pago</Table.HeadCell>
+                      <Table.HeadCell>Estado</Table.HeadCell>
+                      <Table.HeadCell>
+                        <span className="sr-only">Edit</span>
+                      </Table.HeadCell>
+                    </Table.Head>
+                    <Table.Body className="divide-y">
+                      {domicilios.length > 0 ? (
+                        domiciliosFiltrados
+                          .filter((domicilio) => domicilio.turno_tarde === 0)
+                          .map((domicilio) => (
+                            <Table.Row
+                              key={domicilio.venta_id}
+                              className={`bg-white dark:border-gray-700 dark:bg-gray-800 
+                        ${
+                          domicilio.estado_domicilio != 2
+                            ? " bg-[#59b377] font-semibold text-white border-gray-600 dark:bg-[#3e7e54] dark:text-white"
+                            : null
+                        }
+                        `}
+                            >
+                              <Table.Cell># {domicilio.venta_id}</Table.Cell>
+                              {/* <Table.Cell>
+                                {domicilio.turno_tarde === 1 ? (
+                                  <>
+                                    <FaMoon className="text-blue-500" size={22} />
+                                    <span className="font-medium">Tarde</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <FaSun
+                                      className="text-yellow-500"
+                                      size={22}
+                                    />
+                                    <span className="font-medium">Mañana</span>
+                                  </>
+                                )}
+                              </Table.Cell> */}
+                              <Table.Cell>{`${domicilio.direccion_domicilio} ${
+                                domicilio.apartameto !== null &&
+                                domicilio.apartameto !== ""
+                                  ? domicilio.apartameto
+                                  : ""
+                              }`}</Table.Cell>
+                              <Table.Cell className="flex items-center gap-2">
+                                {domicilio.domiciliario_nombres ===
+                                null ? null : (
+                                  <>
+                                    <Button size={"xs"}>
+                                      <FaPen
+                                        className=" cursor-pointer"
+                                        onClick={() =>
+                                          handleUpdateDomiciliario(
+                                            domicilio.venta_id,
+                                            setLoading
+                                          )
+                                        }
+                                      />
+                                    </Button>
+                                    {domicilio.domiciliario_nombres}{" "}
+                                    {domicilio.domiciliario_apellidos}
+                                  </>
+                                )}
+                              </Table.Cell>
+                              <Table.Cell>
+                                {domicilio.cantidad_bidones}
+                              </Table.Cell>
+                              <Table.Cell>{domicilio.producto}</Table.Cell>
+                              <Table.Cell>
+                                {toMoney(
+                                  parseInt(domicilio.precio) *
+                                    parseInt(domicilio.cantidad_bidones)
+                                )}
+                              </Table.Cell>
+                              <Table.Cell>
+                                {domicilio.observacion}
+                                <ModalObservacionVenta
+                                  venta={domicilio}
+                                  setLoading={setLoading}
+                                />
+                              </Table.Cell>
+
+                              <Table.Cell className="flex items-center gap-2">
+                                {domicilio.forma_pago_nombre === null ? null : (
+                                  <>
+                                    <Button size={"xs"}>
+                                      <FaPen
+                                        className="cursor-pointer"
+                                        onClick={() =>
+                                          handleFormaPago(
+                                            domicilio.venta_id,
+                                            1,
+                                            setLoading,
+                                            domicilio.domiciliario_id,
+                                            domicilio.sw_domicilio_recogida,
+                                            domicilio.cantidad_bidones
+                                          )
+                                        }
+                                      />
+                                    </Button>
+                                    {domicilio.forma_pago_nombre}
+                                  </>
+                                )}
+                              </Table.Cell>
+                              <Table.Cell>
+                                <Badge
+                                  className="shadow-xl"
+                                  color={
+                                    domicilio.estado_domicilio === 1
+                                      ? "success"
+                                      : domicilio.estado_domicilio === 2
+                                      ? "warning"
+                                      : "failure"
+                                  }
+                                >
+                                  {domicilio.estado_domicilio_nombre}
+                                </Badge>
+                              </Table.Cell>
+                              <Table.Cell>
+                                <div className="flex items-center gap-2">
+                                  <ModalDetalle venta={domicilio} />
+                                  <FaWhatsapp
+                                    onClick={() => {
+                                      sendWhatsapp(domicilio.telefono);
+                                    }}
+                                    className={`cursor-pointer text-green-500 hover:text-green-700
+                              ${
+                                domicilio.estado_domicilio != 2
+                                  ? " bg-[#59b377] font-semibold text-white border-gray-600 dark:bg-[#3e7e54] dark:text-white"
+                                  : null
+                              }
+                              `}
+                                    size={22}
+                                  />
+                                  {/* Buttón con el flujo completo */}
+                                  {domicilio.estado_domicilio === 2 && (
+                                    <Button
+                                      onClick={() =>
+                                        handleEntregarDomicilio(
+                                          domicilio,
+                                          1,
+                                          setLoading
+                                        )
+                                      }
+                                      size={"xs"}
+                                      className="bg-blue-500 hover:bg-blue-700"
+                                    >
+                                      Entregar
+                                    </Button>
+                                  )}
+
+                                  {/* Botón solo forma de pago */}
+                                  {domicilio.estado_domicilio === 3 && (
+                                    <Button
+                                      onClick={() =>
+                                        handleFormaPago(
+                                          domicilio.venta_id,
+                                          1,
+                                          setLoading,
+                                          domicilio.domiciliario_id,
+                                          domicilio.sw_domicilio_recogida,
+                                          domicilio.cantidad_bidones
+                                        )
+                                      }
+                                      size={"xs"}
+                                      className="bg-blue-500 hover:bg-blue-700"
+                                    >
+                                      Facturar
+                                    </Button>
+                                  )}
+                                </div>
+                              </Table.Cell>
+                            </Table.Row>
+                          ))
+                      ) : (
+                        <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                          <Table.Cell colSpan={10}>No hay ventas</Table.Cell>
+                        </Table.Row>
+                      )}
+                    </Table.Body>
+                  </Table>
+                </div>
+                <div className="overflow-x-auto">
+                  <Table className="text-xs shadow-xl">
+                    <Table.Head>
+                      <Table.HeadCell colSpan={11}>
+                        <span className="flex items-center gap-2">
+                          <FaMoon className="text-blue-500" size={22} />
+                          <b className="dark:text-white ">Turno de la tarde </b>
+                        </span>
+                      </Table.HeadCell>
+                    </Table.Head>
+                    <Table.Head>
+                      <Table.HeadCell>Nro. Venta</Table.HeadCell>
+                      {/* <Table.HeadCell>Turno</Table.HeadCell> */}
+                      <Table.HeadCell>Dirección</Table.HeadCell>
+                      <Table.HeadCell>Domiciliario</Table.HeadCell>
+                      <Table.HeadCell>Cantidad bidones</Table.HeadCell>
+                      <Table.HeadCell>Producto</Table.HeadCell>
+                      <Table.HeadCell>Valor domicilio</Table.HeadCell>
+                      <Table.HeadCell>Observación</Table.HeadCell>
+                      <Table.HeadCell>Forma de pago</Table.HeadCell>
+                      <Table.HeadCell>Estado</Table.HeadCell>
+                      <Table.HeadCell>
+                        <span className="sr-only">Edit</span>
+                      </Table.HeadCell>
+                    </Table.Head>
+                    <Table.Body className="divide-y">
+                      {domicilios.length > 0 ? (
+                        domiciliosFiltrados
+                          .filter((domicilio) => domicilio.turno_tarde === 1)
+                          .map((domicilio) => (
+                            <Table.Row
+                              key={domicilio.venta_id}
+                              className={`bg-white dark:border-gray-700 dark:bg-gray-800 
+                        ${
+                          domicilio.estado_domicilio != 2
+                            ? " bg-[#59b377] font-semibold text-white border-gray-600 dark:bg-[#3e7e54] dark:text-white"
+                            : null
+                        }
+                        `}
+                            >
+                              <Table.Cell># {domicilio.venta_id}</Table.Cell>
+                              {/* <Table.Cell>
+                                {domicilio.turno_tarde === 1 ? (
+                                  <>
+                                    <FaMoon className="text-blue-500" size={22} />
+                                    <span className="font-medium">Tarde</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <FaSun
+                                      className="text-yellow-500"
+                                      size={22}
+                                    />
+                                    <span className="font-medium">Mañana</span>
+                                  </>
+                                )}
+                              </Table.Cell> */}
+                              <Table.Cell>{`${domicilio.direccion_domicilio} ${
+                                domicilio.apartameto !== null &&
+                                domicilio.apartameto !== ""
+                                  ? domicilio.apartameto
+                                  : ""
+                              }`}</Table.Cell>
+                              <Table.Cell className="flex items-center gap-2">
+                                {domicilio.domiciliario_nombres ===
+                                null ? null : (
+                                  <>
+                                    <Button size={"xs"}>
+                                      <FaPen
+                                        className=" cursor-pointer"
+                                        onClick={() =>
+                                          handleUpdateDomiciliario(
+                                            domicilio.venta_id,
+                                            setLoading
+                                          )
+                                        }
+                                      />
+                                    </Button>
+                                    {domicilio.domiciliario_nombres}{" "}
+                                    {domicilio.domiciliario_apellidos}
+                                  </>
+                                )}
+                              </Table.Cell>
+                              <Table.Cell>
+                                {domicilio.cantidad_bidones}
+                              </Table.Cell>
+                              <Table.Cell>{domicilio.producto}</Table.Cell>
+                              <Table.Cell>
+                                {toMoney(
+                                  parseInt(domicilio.precio) *
+                                    parseInt(domicilio.cantidad_bidones)
+                                )}
+                              </Table.Cell>
+                              <Table.Cell>
+                                {domicilio.observacion}
+                                <ModalObservacionVenta
+                                  venta={domicilio}
+                                  setLoading={setLoading}
+                                />
+                              </Table.Cell>
+
+                              <Table.Cell className="flex items-center gap-2">
+                                {domicilio.forma_pago_nombre === null ? null : (
+                                  <>
+                                    <Button size={"xs"}>
+                                      <FaPen
+                                        className="cursor-pointer"
+                                        onClick={() =>
+                                          handleFormaPago(
+                                            domicilio.venta_id,
+                                            1,
+                                            setLoading,
+                                            domicilio.domiciliario_id,
+                                            domicilio.sw_domicilio_recogida,
+                                            domicilio.cantidad_bidones
+                                          )
+                                        }
+                                      />
+                                    </Button>
+                                    {domicilio.forma_pago_nombre}
+                                  </>
+                                )}
+                              </Table.Cell>
+                              <Table.Cell>
+                                <Badge
+                                  className="shadow-xl"
+                                  color={
+                                    domicilio.estado_domicilio === 1
+                                      ? "success"
+                                      : domicilio.estado_domicilio === 2
+                                      ? "warning"
+                                      : "failure"
+                                  }
+                                >
+                                  {domicilio.estado_domicilio_nombre}
+                                </Badge>
+                              </Table.Cell>
+                              <Table.Cell>
+                                <div className="flex items-center gap-2">
+                                  <ModalDetalle venta={domicilio} />
+                                  <FaWhatsapp
+                                    onClick={() => {
+                                      sendWhatsapp(domicilio.telefono);
+                                    }}
+                                    className={`cursor-pointer text-green-500 hover:text-green-700
+                              ${
+                                domicilio.estado_domicilio != 2
+                                  ? " bg-[#59b377] font-semibold text-white border-gray-600 dark:bg-[#3e7e54] dark:text-white"
+                                  : null
+                              }
+                              `}
+                                    size={22}
+                                  />
+                                  {/* Buttón con el flujo completo */}
+                                  {domicilio.estado_domicilio === 2 && (
+                                    <Button
+                                      onClick={() =>
+                                        handleEntregarDomicilio(
+                                          domicilio,
+                                          1,
+                                          setLoading
+                                        )
+                                      }
+                                      size={"xs"}
+                                      className="bg-blue-500 hover:bg-blue-700"
+                                    >
+                                      Entregar
+                                    </Button>
+                                  )}
+
+                                  {/* Botón solo forma de pago */}
+                                  {domicilio.estado_domicilio === 3 && (
+                                    <Button
+                                      onClick={() =>
+                                        handleFormaPago(
+                                          domicilio.venta_id,
+                                          1,
+                                          setLoading,
+                                          domicilio.domiciliario_id,
+                                          domicilio.sw_domicilio_recogida,
+                                          domicilio.cantidad_bidones
+                                        )
+                                      }
+                                      size={"xs"}
+                                      className="bg-blue-500 hover:bg-blue-700"
+                                    >
+                                      Facturar
+                                    </Button>
+                                  )}
+                                </div>
+                              </Table.Cell>
+                            </Table.Row>
+                          ))
+                      ) : (
+                        <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                          <Table.Cell colSpan={10}>No hay ventas</Table.Cell>
+                        </Table.Row>
+                      )}
+                    </Table.Body>
+                  </Table>
+                </div>
+              </div>
+            </Accordion.Content>
+          </Accordion.Panel>
+        </Accordion>
 
         <Accordion collapseAll>
           <Accordion.Panel>
@@ -414,6 +723,7 @@ export default function Despachos() {
                     <Table.HeadCell>Domiciliario</Table.HeadCell>
                     <Table.HeadCell>Cantidad bidones</Table.HeadCell>
                     <Table.HeadCell>Valor domicilio</Table.HeadCell>
+                    <Table.HeadCell>Observación</Table.HeadCell>
                     <Table.HeadCell>Fecha de venta</Table.HeadCell>
                     <Table.HeadCell>Forma de pago</Table.HeadCell>
                     <Table.HeadCell>Estado</Table.HeadCell>
@@ -425,17 +735,17 @@ export default function Despachos() {
                     {domiciliosPendientes.length > 0 ? (
                       domiciliosPendientes.map((domicilio) => (
                         <Table.Row
-                          key={domicilio.id}
+                          key={domicilio.venta_id}
                           className={`bg-white dark:border-gray-700 dark:bg-gray-800 
-                      ${
-                        domicilio.estado_domicilio != 2
-                          ? " bg-[#59b377] font-semibold text-white border-gray-600 dark:bg-[#3e7e54] dark:text-white"
-                          : null
-                      }
-                      `}
+                        ${
+                          domicilio.estado_domicilio != 2
+                            ? " bg-[#59b377] font-semibold text-white border-gray-600 dark:bg-[#3e7e54] dark:text-white"
+                            : null
+                        }
+                        `}
                         >
                           <Table.Cell># {domicilio.venta_id}</Table.Cell>
-                          <Table.Cell>{`${domicilio.direccion_domicilio}`}</Table.Cell>
+                          <Table.Cell>{`${domicilio.direccion_domicilio} ${domicilio.apartameto}`}</Table.Cell>
                           <Table.Cell>
                             {domicilio.domiciliario_nombres &&
                               `${domicilio.domiciliario_nombres} ${domicilio.domiciliario_apellidos}`}
@@ -447,6 +757,7 @@ export default function Despachos() {
                                 parseInt(domicilio.cantidad_bidones)
                             )}
                           </Table.Cell>
+                          <Table.Cell>{domicilio.observacion}</Table.Cell>
                           <Table.Cell>
                             {toFormatDate(domicilio.fh_creacion)}
                           </Table.Cell>
@@ -488,12 +799,12 @@ export default function Despachos() {
                                 sendWhatsapp(domicilio.telefono);
                               }}
                               className={`cursor-pointer text-green-500 hover:text-green-700
-                            ${
-                              domicilio.estado_domicilio != 2
-                                ? " bg-[#59b377] font-semibold text-white border-gray-600 dark:bg-[#3e7e54] dark:text-white"
-                                : null
-                            }
-                            `}
+                              ${
+                                domicilio.estado_domicilio != 2
+                                  ? " bg-[#59b377] font-semibold text-white border-gray-600 dark:bg-[#3e7e54] dark:text-white"
+                                  : null
+                              }
+                              `}
                               size={22}
                             />
                             {/* Buttón con el flujo completo */}
@@ -522,7 +833,8 @@ export default function Despachos() {
                                     1,
                                     setLoading,
                                     domicilio.domiciliario_id,
-                                    domicilio.sw_domicilio_recogida
+                                    domicilio.sw_domicilio_recogida,
+                                    domicilio.cantidad_bidones
                                   )
                                 }
                                 size={"xs"}
@@ -575,7 +887,7 @@ export default function Despachos() {
                     {bidonesPendientes.length > 0 ? (
                       bidonesPendientes.map((domicilio) => (
                         <Table.Row
-                          key={domicilio.id}
+                          key={domicilio.venta_id}
                           className="bg-white dark:border-gray-700 dark:bg-gray-800"
                         >
                           <Table.Cell># {`${domicilio.venta_id}`}</Table.Cell>

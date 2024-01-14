@@ -3,6 +3,7 @@ import {
   getClientes,
   postClienteApi,
   deleteCliente,
+  activeCliente,
   markedClienteApi,
   verifyTelApi,
 } from "../services/clientes.services";
@@ -52,6 +53,20 @@ export default function useClientes() {
       toast.dismiss();
     }
   };
+  const activeClienteApi = async (clienteId) => {
+    toast.loading("Reactivando cliente...");
+    try {
+      const response = await activeCliente(clienteId);
+      if (response.status === 200) {
+        toast.success(response.mensaje);
+      }
+    } catch (error) {
+      toast.error(error.response.data.mensaje);
+      throw error;
+    } finally {
+      toast.dismiss();
+    }
+  };
 
   const markedCliente = async (data) => {
     toast.loading("Marcando cliente...");
@@ -86,6 +101,7 @@ export default function useClientes() {
     getListClientes,
     postCliente,
     deleteClienteApi,
+    activeClienteApi,
     markedCliente,
     verifyTel,
   };

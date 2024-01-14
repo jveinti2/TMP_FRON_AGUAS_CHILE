@@ -68,3 +68,12 @@ export const postUpdateDomiciliarioApi = async (id, data_form) => {
     console.log(error);
   }
 };
+
+export const postObservacionVentaApi = async (data_form) => {
+  try {
+    const response = await api.post(`ventas/observacion`, data_form);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
+};

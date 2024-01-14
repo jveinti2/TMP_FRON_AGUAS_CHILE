@@ -1,49 +1,54 @@
-import { useState } from "react";
-import { FaCalendarWeek } from "react-icons/fa6";
-// import DatePicker from "react-datepicker";
-// import "react-datepicker/dist/react-datepicker.css";
-import { Datepicker } from "flowbite-react";
-
+import { useState, useRef, useEffect } from "react";
 import useCierreMes from "../hooks/useCierreMes";
 
 export default function FiltroFechaCierreMes() {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const { getListCierreMes } = useCierreMes();
+  const inputRef = useRef();
+
   const data_form = {
     fh_creacion: "",
     fh_modificacion: "",
   };
 
-  const handleDateChange = (date) => {
-    data_form.fh_creacion = date;
+  const handleDateChange = (date_form) => {
+    setDate(date_form);
+    data_form.fh_creacion = date_form;
     getListCierreMes(data_form);
-    // setSelectedDate(date);
   };
 
-  const renderMonthContent = (month, shortMonth, longMonth) => {
-    const tooltipText = `Tooltip for month: ${longMonth}`;
-    return <span title={tooltipText}>{shortMonth}</span>;
-  };
+  useEffect(() => {
+    const dateInput = document.getElementById("date");
+
+    if (dateInput) {
+      dateInput.addEventListener("click", function () {
+        dateInput.showPicker();
+      });
+    }
+
+    return () => {
+      if (dateInput) {
+        dateInput.removeEventListener("click", function () {
+          dateInput.showPicker();
+        });
+      }
+    };
+  }, []);
 
   return (
     <>
-      <div className="flex items-center gap-2">
-        <Datepicker
-          onSelectedDateChanged={handleDateChange}
-          language="es-ES"
-          labelTodayButton="Hoy"
-          labelClearButton="Limpar"
-        />
-
-        {/* <DatePicker
-          className="border border-gray-300 rounded-md p-1"
-          selected={selectedDate}
-          renderMonthContent={renderMonthContent}
-          showMonthYearPicker
-          dateFormat="MM/yyyy"
-          onChange={handleDateChange}
-        /> */}
-      </div>
+      <input
+        id="date"
+        type="date"
+        className=" w-full md:w-1/6 px-2 rounded-md border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent
+          dark:bg-[#171e29] dark:border-gray-600 dark:text-white dark:focus:ring-[#1d4ed8] dark:focus:border-transparent
+          "
+        value={date}
+        onChange={(e) => {
+          handleDateChange(e.target.value);
+        }}
+        ref={inputRef}
+      />
     </>
   );
 }

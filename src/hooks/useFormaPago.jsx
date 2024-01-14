@@ -1,11 +1,16 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { Button, Checkbox, Label } from "flowbite-react";
-import { getVentasApi, postDomicilioApi } from "../services/ventas.services";
+import { Button, Label, TextInput } from "flowbite-react";
+import {
+  getVentasApi,
+  postDomicilioApi,
+  postObservacionVentaApi,
+} from "../services/ventas.services";
 import { getListaFormasPagoApi } from "../services/listas.services";
 import { getDomiciliariosApi } from "../services/domiciliarios.services";
 
 export default function useFormaPago() {
+  const [loadingFormasPago, setLoadingFormasPago] = useState(true);
   const [formasPago, setFormasPago] = useState([]);
   const [domiciliarios, setDomiciliarios] = useState([]);
 
@@ -15,137 +20,8 @@ export default function useFormaPago() {
     });
     getDomiciliariosApi().then((response) => {
       setDomiciliarios(response.domiciliarios);
-      console.log(response.domiciliarios);
     });
   }, []);
-
-  // const handleEntregarDomicilio = async (venta_id, bandera, setLoading) => {
-  //   Seleccionar domiciliario
-  //   const domiciliarioPromise = new Promise((resolve) => {
-  //     const handleDomiciliarioClick = (domiciliario) => {
-  //       resolve(domiciliario);
-  //       toast.dismiss();
-  //     };
-
-  //     toast(
-  //       <div className="space-y-2">
-  //         <p>¿Quién entregará el domicilio?</p>
-  //         <div className="grid grid-cols-2 gap-2">
-  //           {domiciliarios.length > 0 &&
-  //             domiciliarios.map((domiciliario) => {
-  //               return (
-  //                 <Button
-  //                   key={domiciliario.id}
-  //                   size={"xs"}
-  //                   color="success"
-  //                   onClick={() => handleDomiciliarioClick(domiciliario.id)}
-  //                 >
-  //                   {domiciliario.nombres} {domiciliario.apellidos}
-  //                 </Button>
-  //               );
-  //             })}
-  //         </div>
-  //         <div className="grid place-content-center">
-  //           <Button size={"xs"} color="failure" onClick={() => toast.dismiss()}>
-  //             Cancelar
-  //           </Button>
-  //         </div>
-  //       </div>,
-  //       { duration: Infinity }
-  //     );
-  //   });
-
-  //   const domiciliario = await domiciliarioPromise;
-
-  //   Seleccionar forma de pago
-  //   const formaPagoPromise = new Promise((resolve) => {
-  //     const handleFormaPagoClick = (formaPago) => {
-  //       resolve(formaPago);
-  //     };
-
-  //     toast(
-  //       <div className="space-y-4">
-  //         <div className="space-y-2">
-  //           <small>
-  //             *Recuerde autorizar el pago luego de recibir el efectivo o
-  //             comprobante de pago.
-  //           </small>
-  //           <br />
-  //           {bandera === 1 ? (
-  //             <small>
-  //               *Si el cliente no pagará inmediatamente, por favor dejarlo en
-  //               Pendiente pago.
-  //             </small>
-  //           ) : null}
-  //         </div>
-  //         <hr />
-  //         <div className="space-y-2">
-  //           <div>
-  //             <div className="flex items-center gap-2">
-  //               <input id="sw_dejar_bidones" type="checkbox" />
-  //               <Label htmlFor="remember">¿Se dejarán los bidones?</Label>
-  //             </div>
-  //           </div>
-  //           <hr />
-  //           <div className="space-y-2">
-  //             <Label>¿Cómo desea pagar el cliente?</Label>
-  //             <div className="grid grid-cols-2 gap-2">
-  //               {formasPago.length > 0 &&
-  //                 formasPago.map((formaPago) => {
-  //                   return (
-  //                     <Button
-  //                       key={formaPago.id}
-  //                       size={"xs"}
-  //                       color="success"
-  //                       onClick={() => handleFormaPagoClick(formaPago.id)}
-  //                     >
-  //                       {formaPago.nombre}
-  //                     </Button>
-  //                   );
-  //                 })}
-  //             </div>
-  //           </div>
-  //         </div>
-  //         <div className="grid place-content-center">
-  //           <Button size={"xs"} color="failure" onClick={() => toast.dismiss()}>
-  //             Cancelar
-  //           </Button>
-  //         </div>
-  //       </div>,
-  //       { duration: Infinity }
-  //     );
-  //   });
-
-  //   const formaPago = await formaPagoPromise;
-  //   const swDejarBidones = document.getElementById("sw_dejar_bidones").checked;
-
-  //   Realizar la entrega del domicilio
-  //   const data_form = {
-  //     domiciliario,
-  //     forma_pago: formaPago,
-  //     swDejarBidones: swDejarBidones,
-  //   };
-
-  //   toast
-  //     .promise(
-  //       postDomicilioApi(venta_id, data_form, bandera),
-  //       {
-  //         loading: "Entregando domicilio...",
-  //         success: "Domicilio entregado",
-  //         error: "Error al entregar el domicilio",
-  //       },
-  //       {
-  //         duration: 3000,
-  //         position: "top-center",
-  //       }
-  //     )
-  //     .then(() => {
-  //       getVentasApi().then((response) => {
-  //         setLoading(true);
-  //       });
-  //       toast.dismiss();
-  //     });
-  // };
 
   const selectDomiciliario = () => {
     return new Promise((resolve) => {
@@ -176,6 +52,53 @@ export default function useFormaPago() {
             <Button size={"xs"} color="failure" onClick={() => toast.dismiss()}>
               Cancelar
             </Button>
+          </div>
+        </div>,
+        { duration: Infinity }
+      );
+    });
+  };
+
+  const confirmDomicilio = (cantidad) => {
+    return new Promise((resolve) => {
+      const handleConfirmDomicilioClick = () => {
+        resolve(document.getElementById("cantidadNueva").value);
+        toast.dismiss();
+      };
+
+      toast(
+        <div className="space-y-2">
+          <p className="text-center">
+            Se facturaron <b>{cantidad} unidades.</b> <br />
+            Confirme o cambie el valor
+          </p>
+          <div className="grid place-content-center gap-2">
+            <div className="flex items-center gap-2">
+              <div className="mb-2 block">
+                <Label htmlFor="cantidad" value="Cantidad nueva" />
+              </div>
+              <TextInput sizing="sm" id="cantidadNueva" type="number" min={1} />
+            </div>
+          </div>
+          <div className="grid place-content-center">
+            <div className="flex gap-2">
+              <Button
+                size={"xs"}
+                color="success"
+                onClick={handleConfirmDomicilioClick}
+              >
+                Confirmar
+              </Button>
+              <Button
+                size={"xs"}
+                color="failure"
+                onClick={() => {
+                  toast.dismiss();
+                }}
+              >
+                Cancelar
+              </Button>
+            </div>
           </div>
         </div>,
         { duration: Infinity }
@@ -290,6 +213,12 @@ export default function useFormaPago() {
       domicilio.forma_pago_id !== null && domicilio.forma_pago_id !== undefined
         ? domicilio.forma_pago_id
         : await selectFormaPago();
+
+    const cantidad_bidones =
+      domicilio.estado_domicilio === 2
+        ? await confirmDomicilio(domicilio.cantidad_bidones)
+        : domicilio.cantidad_bidones;
+
     const swDejarBidones =
       domicilio.estado_domicilio !== 2
         ? domicilio.sw_domicilio_recogida
@@ -298,6 +227,8 @@ export default function useFormaPago() {
     const data_form = {
       domiciliario,
       forma_pago: formaPago,
+      cantidad_bidones:
+        cantidad_bidones !== "" ? cantidad_bidones : domicilio.cantidad_bidones,
       swDejarBidones: swDejarBidones,
     };
 
@@ -327,13 +258,15 @@ export default function useFormaPago() {
     bandera,
     setLoading,
     domiciliario_id,
-    sw_domicilio_recogida
+    sw_domicilio_recogida,
+    cantidad_bidones
   ) => {
     const formaPago = await selectFormaPago();
     const data_form = {
       domiciliario: domiciliario_id,
       forma_pago: formaPago,
       swDejarBidones: sw_domicilio_recogida,
+      cantidad_bidones: cantidad_bidones,
     };
 
     toast
@@ -392,5 +325,26 @@ export default function useFormaPago() {
       });
   };
 
-  return { handleEntregarDomicilio, handleFormaPago, handleDomiciliario };
+  const postObservacionVenta = async (data) => {
+    toast.loading("Guardando observación...");
+    try {
+      const response = await postObservacionVentaApi(data);
+      if (response.status === 200) {
+        toast.success(response.mensaje);
+      }
+      return response.venta;
+    } catch (error) {
+      toast.error(error.response.data.mensaje);
+      throw error;
+    } finally {
+      toast.dismiss();
+    }
+  };
+
+  return {
+    handleEntregarDomicilio,
+    handleFormaPago,
+    handleDomiciliario,
+    postObservacionVenta,
+  };
 }

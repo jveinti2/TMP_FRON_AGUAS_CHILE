@@ -2,7 +2,14 @@ import { Table, Button, Badge, Accordion, TextInput } from "flowbite-react";
 import { useContext, useState, useEffect } from "react";
 import { VentasContext } from "../context/Ventas";
 import { NavLink } from "react-router-dom";
-import { FaWhatsapp, FaFileLines, FaPen, FaRegTrashCan } from "react-icons/fa6";
+import {
+  FaWhatsapp,
+  FaFileLines,
+  FaPen,
+  FaRegTrashCan,
+  FaSun,
+  FaMoon,
+} from "react-icons/fa6";
 import toMoney from "../utils/toMoney";
 import constants from "../utils/constants";
 import useFormaPago from "../hooks/useFormaPago";
@@ -12,9 +19,6 @@ import useVentas from "../hooks/useVentas";
 import { getDomiciliariosApi } from "../services/domiciliarios.services";
 import { postUpdateDomiciliarioApi } from "../services/ventas.services";
 import ModalDetalle from "./ModalDetalle";
-import Echo from "laravel-echo";
-// import Pusher from "pusher-js";
-
 export default function ListadoVentas() {
   const [domiciliarios, setDomiciliarios] = useState([]);
   const [filtroVentasEdificio, setFiltroVentasEdificio] = useState("");
@@ -28,29 +32,6 @@ export default function ListadoVentas() {
     getDomiciliariosApi().then((response) => {
       setDomiciliarios(response.domiciliarios);
     });
-
-    //Websocket
-    const options = {
-      broadcaster: "pusher",
-      key: import.meta.env.VITE_PUSHER_APP_KEY,
-      wsHost: "localhost",
-      cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
-      encrypted: true,
-      wsPort: import.meta.env.VITE_PUSHER_PORT,
-      wssPort: import.meta.env.VITE_PUSHER_PORT,
-      disableStats: true,
-      enabledTransports: ["ws"],
-      forceTLS: false,
-    };
-
-    console.log(options);
-    const echo = new Echo(options);
-
-    echo
-      .channel("notification-delivery")
-      .listen("NotificationDeliveryEvent", (event) => {
-        console.log("Evento de entrega de notificación recibido:", event.data);
-      });
   }, []);
 
   const sendWhatsapp = (telefono, venta_id) => {
@@ -233,6 +214,7 @@ export default function ListadoVentas() {
                     </Table.HeadCell>
                   </TableHead>
                   <Table.Head>
+                    <Table.HeadCell>Nro. Venta</Table.HeadCell>
                     <Table.HeadCell>Nombre cliente</Table.HeadCell>
                     <Table.HeadCell>Edificio</Table.HeadCell>
                     <Table.HeadCell>Producto</Table.HeadCell>
@@ -251,6 +233,7 @@ export default function ListadoVentas() {
                             key={venta.venta_id}
                             className="bg-white dark:border-gray-700 dark:bg-gray-800"
                           >
+                            <Table.Cell># {venta.venta_id}</Table.Cell>
                             <Table.Cell>{venta.cliente_nombres}</Table.Cell>
                             <Table.Cell>{venta.edificio}</Table.Cell>
                             <Table.Cell>{venta.producto}</Table.Cell>
@@ -311,16 +294,21 @@ export default function ListadoVentas() {
             <Accordion.Title className="bg-white dark:bg-gray-800 py-3 ">
               Ventas a domicilio
             </Accordion.Title>
-            <Accordion.Content className="p-1">
+            <Accordion.Content className="p-1 space-y-3">
+              <TextInput
+                className="w-full md:w-1/3 mt-1"
+                placeholder="Buscar ventas"
+                value={filtroVentasDomicilio}
+                onChange={handleFiltroVentasDomicilio}
+              />
               <div className="overflow-x-auto ">
                 <Table className="text-xs ">
                   <Table.Head>
                     <Table.HeadCell colSpan={8}>
-                      <TextInput
-                        placeholder="Buscar ventas"
-                        value={filtroVentasDomicilio}
-                        onChange={handleFiltroVentasDomicilio}
-                      />
+                      <span className="flex items-center gap-2">
+                        <FaSun className="text-yellow-500" size={22} />
+                        <b className="dark:text-white ">Turno de la mañana </b>
+                      </span>
                     </Table.HeadCell>
                     <Table.HeadCell>
                       <NavLink to="/despachos">
@@ -348,100 +336,247 @@ export default function ListadoVentas() {
                   </Table.Head>
                   <Table.Body className="divide-y">
                     {ventas.lista_ventas_domicilio.length > 0 ? (
-                      ventasDomicilioFiltrados.map((venta) => {
-                        return (
-                          <Table.Row
-                            key={venta.venta_id}
-                            className={`bg-white dark:border-gray-700 dark:bg-gray-800 
+                      ventasDomicilioFiltrados
+                        .filter((venta) => venta.turno_tarde === 0)
+                        .map((venta) => {
+                          return (
+                            <Table.Row
+                              key={venta.venta_id}
+                              className={`bg-white dark:border-gray-700 dark:bg-gray-800 
                       ${
                         venta.estado_domicilio != 2
                           ? " bg-[#59b377] font-semibold text-white border-gray-600 dark:bg-[#3e7e54] dark:text-white"
                           : null
                       }
                             `}
-                          >
-                            <Table.Cell>{venta.cliente_nombres}</Table.Cell>
-                            <Table.Cell>
-                              {venta.direccion_domicilio} {venta.apartameto}
-                            </Table.Cell>
-                            <Table.Cell>{venta.producto}</Table.Cell>
-                            <Table.Cell>{venta.cantidad_bidones}</Table.Cell>
-                            <Table.Cell>
-                              {toMoney(
-                                parseInt(venta.precio * venta.cantidad_bidones)
-                              )}
-                            </Table.Cell>
-                            <Table.Cell>
-                              <span className="flex items-center gap-2">
-                                {venta.domiciliario_nombres && (
+                            >
+                              <Table.Cell>{venta.cliente_nombres}</Table.Cell>
+                              <Table.Cell>
+                                {venta.direccion_domicilio} {venta.apartameto}
+                              </Table.Cell>
+                              <Table.Cell>{venta.producto}</Table.Cell>
+                              <Table.Cell>{venta.cantidad_bidones}</Table.Cell>
+                              <Table.Cell>
+                                {toMoney(
+                                  parseInt(
+                                    venta.precio * venta.cantidad_bidones
+                                  )
+                                )}
+                              </Table.Cell>
+                              <Table.Cell>
+                                <span className="flex items-center gap-2">
+                                  {venta.domiciliario_nombres && (
+                                    <>
+                                      <Button size={"xs"}>
+                                        <FaPen
+                                          className="cursor-pointer"
+                                          onClick={() =>
+                                            handleDomiciliario(
+                                              venta.venta_id,
+                                              2,
+                                              setLoading,
+                                              venta.forma_pago_id,
+                                              venta.sw_domicilio_recogida
+                                            )
+                                          }
+                                        />
+                                      </Button>
+                                      {venta.domiciliario_nombres}{" "}
+                                      {venta.domiciliario_apellidos}
+                                    </>
+                                  )}
+                                </span>
+                              </Table.Cell>
+                              <Table.Cell className="flex items-center gap-2">
+                                {venta.forma_pago_nombre === null ? null : (
                                   <>
                                     <Button size={"xs"}>
                                       <FaPen
                                         className="cursor-pointer"
                                         onClick={() =>
-                                          handleDomiciliario(
+                                          handleFormaPago(
                                             venta.venta_id,
                                             2,
                                             setLoading,
-                                            venta.forma_pago_id,
-                                            venta.sw_domicilio_recogida
+                                            venta.domiciliario_id,
+                                            venta.sw_domicilio_recogida,
+                                            venta.cantidad_bidones
                                           )
                                         }
                                       />
                                     </Button>
-                                    {venta.domiciliario_nombres}{" "}
-                                    {venta.domiciliario_apellidos}
+                                    {venta.forma_pago_nombre}
                                   </>
                                 )}
-                              </span>
-                            </Table.Cell>
-                            <Table.Cell className="flex items-center gap-2">
-                              {venta.forma_pago_nombre === null ? null : (
-                                <>
-                                  <Button size={"xs"}>
-                                    <FaPen
-                                      className="cursor-pointer"
-                                      onClick={() =>
-                                        handleFormaPago(
-                                          venta.venta_id,
-                                          2,
-                                          setLoading,
-                                          venta.domiciliario_id,
-                                          venta.sw_domicilio_recogida
-                                        )
-                                      }
-                                    />
-                                  </Button>
-                                  {venta.forma_pago_nombre}
-                                </>
-                              )}
-                            </Table.Cell>
-                            <Table.Cell>
-                              <div className="flex items-center gap-2">
-                                <ModalDetalle venta={venta} />
-                                {venta.estado_domicilio === 1 ? (
-                                  <Badge color="success">
-                                    {venta.estado_domicilio_nombre}
-                                  </Badge>
-                                ) : (
-                                  <Badge color="warning">
-                                    {venta.estado_domicilio_nombre}
-                                  </Badge>
+                              </Table.Cell>
+                              <Table.Cell>
+                                <div className="flex items-center gap-2">
+                                  <ModalDetalle venta={venta} />
+                                  {venta.estado_domicilio === 1 ? (
+                                    <Badge color="success">
+                                      {venta.estado_domicilio_nombre}
+                                    </Badge>
+                                  ) : (
+                                    <Badge color="warning">
+                                      {venta.estado_domicilio_nombre}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </Table.Cell>
+                              <Table.Cell>
+                                <FaRegTrashCan
+                                  size={22}
+                                  className="cursor-pointer text-red-500 hover:text-red-700"
+                                  onClick={() =>
+                                    handleDeleteVenta(venta.venta_id)
+                                  }
+                                />
+                              </Table.Cell>
+                            </Table.Row>
+                          );
+                        })
+                    ) : (
+                      <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                        <Table.Cell colSpan={9}>No hay ventas</Table.Cell>
+                      </Table.Row>
+                    )}
+                  </Table.Body>
+                </Table>
+              </div>
+              <div className="overflow-x-auto ">
+                <Table className="text-xs ">
+                  <Table.Head>
+                    <Table.HeadCell colSpan={8}>
+                      <span className="flex items-center gap-2">
+                        <FaMoon className="text-blue-500" size={22} />
+                        <b className="dark:text-white ">Turno de la tarde </b>
+                      </span>
+                    </Table.HeadCell>
+                    <Table.HeadCell>
+                      <NavLink to="/despachos">
+                        <Button
+                          size={"xs"}
+                          className="bg-blue-500 hover:bg-blue-700"
+                        >
+                          Despachos
+                        </Button>
+                      </NavLink>
+                    </Table.HeadCell>
+                  </Table.Head>
+                  <Table.Head>
+                    <Table.HeadCell>Nombre cliente</Table.HeadCell>
+                    <Table.HeadCell>Dirección</Table.HeadCell>
+                    <Table.HeadCell>Producto</Table.HeadCell>
+                    <Table.HeadCell>Cantidad bidones</Table.HeadCell>
+                    <Table.HeadCell>Valor</Table.HeadCell>
+                    <Table.HeadCell>Domiciliario</Table.HeadCell>
+                    <Table.HeadCell>Forma pago</Table.HeadCell>
+                    <Table.HeadCell>Estado</Table.HeadCell>
+                    <Table.HeadCell>
+                      <span className="sr-only">Edit</span>
+                    </Table.HeadCell>
+                  </Table.Head>
+                  <Table.Body className="divide-y">
+                    {ventas.lista_ventas_domicilio.length > 0 ? (
+                      ventasDomicilioFiltrados
+                        .filter((venta) => venta.turno_tarde === 1)
+                        .map((venta) => {
+                          return (
+                            <Table.Row
+                              key={venta.venta_id}
+                              className={`bg-white dark:border-gray-700 dark:bg-gray-800 
+                      ${
+                        venta.estado_domicilio != 2
+                          ? " bg-[#59b377] font-semibold text-white border-gray-600 dark:bg-[#3e7e54] dark:text-white"
+                          : null
+                      }
+                            `}
+                            >
+                              <Table.Cell>{venta.cliente_nombres}</Table.Cell>
+                              <Table.Cell>
+                                {venta.direccion_domicilio} {venta.apartameto}
+                              </Table.Cell>
+                              <Table.Cell>{venta.producto}</Table.Cell>
+                              <Table.Cell>{venta.cantidad_bidones}</Table.Cell>
+                              <Table.Cell>
+                                {toMoney(
+                                  parseInt(
+                                    venta.precio * venta.cantidad_bidones
+                                  )
                                 )}
-                              </div>
-                            </Table.Cell>
-                            <Table.Cell>
-                              <FaRegTrashCan
-                                size={22}
-                                className="cursor-pointer text-red-500 hover:text-red-700"
-                                onClick={() =>
-                                  handleDeleteVenta(venta.venta_id)
-                                }
-                              />
-                            </Table.Cell>
-                          </Table.Row>
-                        );
-                      })
+                              </Table.Cell>
+                              <Table.Cell>
+                                <span className="flex items-center gap-2">
+                                  {venta.domiciliario_nombres && (
+                                    <>
+                                      <Button size={"xs"}>
+                                        <FaPen
+                                          className="cursor-pointer"
+                                          onClick={() =>
+                                            handleDomiciliario(
+                                              venta.venta_id,
+                                              2,
+                                              setLoading,
+                                              venta.forma_pago_id,
+                                              venta.sw_domicilio_recogida
+                                            )
+                                          }
+                                        />
+                                      </Button>
+                                      {venta.domiciliario_nombres}{" "}
+                                      {venta.domiciliario_apellidos}
+                                    </>
+                                  )}
+                                </span>
+                              </Table.Cell>
+                              <Table.Cell className="flex items-center gap-2">
+                                {venta.forma_pago_nombre === null ? null : (
+                                  <>
+                                    <Button size={"xs"}>
+                                      <FaPen
+                                        className="cursor-pointer"
+                                        onClick={() =>
+                                          handleFormaPago(
+                                            venta.venta_id,
+                                            2,
+                                            setLoading,
+                                            venta.domiciliario_id,
+                                            venta.sw_domicilio_recogida,
+                                            venta.cantidad_bidones
+                                          )
+                                        }
+                                      />
+                                    </Button>
+                                    {venta.forma_pago_nombre}
+                                  </>
+                                )}
+                              </Table.Cell>
+                              <Table.Cell>
+                                <div className="flex items-center gap-2">
+                                  <ModalDetalle venta={venta} />
+                                  {venta.estado_domicilio === 1 ? (
+                                    <Badge color="success">
+                                      {venta.estado_domicilio_nombre}
+                                    </Badge>
+                                  ) : (
+                                    <Badge color="warning">
+                                      {venta.estado_domicilio_nombre}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </Table.Cell>
+                              <Table.Cell>
+                                <FaRegTrashCan
+                                  size={22}
+                                  className="cursor-pointer text-red-500 hover:text-red-700"
+                                  onClick={() =>
+                                    handleDeleteVenta(venta.venta_id)
+                                  }
+                                />
+                              </Table.Cell>
+                            </Table.Row>
+                          );
+                        })
                     ) : (
                       <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
                         <Table.Cell colSpan={9}>No hay ventas</Table.Cell>

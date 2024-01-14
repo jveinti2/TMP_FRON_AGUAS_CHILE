@@ -87,6 +87,12 @@ export default function ModalDetalle({ venta }) {
                   </Table.Cell>
                   <Table.Cell>{venta.forma_pago_nombre}</Table.Cell>
                 </Table.Row>
+                <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                  <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                    Obervación
+                  </Table.Cell>
+                  <Table.Cell>{venta.observacion}</Table.Cell>
+                </Table.Row>
                 {venta.domicilio == 1 && (
                   <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
                     <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">

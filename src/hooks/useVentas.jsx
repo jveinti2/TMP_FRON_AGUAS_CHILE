@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import {
   getVentasApi,
   postVentaApi,
@@ -8,6 +8,7 @@ import {
 import toast from "react-hot-toast";
 import { VentasContext } from "../context/Ventas";
 import constants from "../utils/constants";
+import Echo from "laravel-echo";
 
 export default function useVentas() {
   const { setVentas, loading, setLoading } = useContext(VentasContext);
@@ -27,6 +28,29 @@ export default function useVentas() {
       setLoading(false);
     }
   }, [loading]);
+
+  useEffect(() => {
+    const options = {
+      broadcaster: "pusher",
+      key: import.meta.env.VITE_PUSHER_APP_KEY, // Gm8VwE4c9fcgztt1eyHu
+      wsHost: "api.quickconnection.com.co",
+      cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+      wsPort: 2088,
+      wssPort: 2088,
+      disableStats: true,
+      enabledTransports: ["ws", "wss"],
+      forceTLS: true,
+    };
+    const echo = new Echo(options);
+    echo
+      .channel("notification-delivery")
+      .listen("NotificationDeliveryEvent", (event) => {
+        setTimeout(() => {
+          setLoading(true);
+          toast.dismiss();
+        }, 2000);
+      });
+  }, []);
 
   const getListVentas = (data) => {
     getVentasApi(data)
@@ -255,7 +279,6 @@ export default function useVentas() {
   };
 
   const realoadData = () => {
-    console.log("realoadData");
     toast.loading("Cargando...");
     setTimeout(() => {
       setLoading(true);
