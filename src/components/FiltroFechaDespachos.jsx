@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import useDespachos from "../hooks/useDespachos";
+import useVentas from "../hooks/useVentas";
+import ButtonReload from "./ButtonReload";
 import moment from "moment-timezone";
 
 export default function FiltroFecha() {
-  const { getListaDomilicios } = useDespachos();
+  const { getListVentas, realoadData } = useVentas();
   // fecha de chile
   const [date, setDate] = useState(
     moment().tz("America/Santiago").format("YYYY-MM-DD")
@@ -18,7 +19,7 @@ export default function FiltroFecha() {
   const handleDateChange = (date_form) => {
     setDate(date_form);
     data_form.fh_creacion = date_form;
-    getListaDomilicios(data_form);
+    getListVentas(data_form);
   };
 
   useEffect(() => {
@@ -54,6 +55,8 @@ export default function FiltroFecha() {
           }}
           ref={inputRef}
         />
+
+        <ButtonReload functionName={realoadData} />
       </div>
     </>
   );
