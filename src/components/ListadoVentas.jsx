@@ -304,7 +304,7 @@ export default function ListadoVentas() {
               <div className="overflow-x-auto ">
                 <Table className="text-xs ">
                   <Table.Head>
-                    <Table.HeadCell colSpan={8}>
+                    <Table.HeadCell colSpan={9}>
                       <span className="flex items-center gap-2">
                         <FaSun className="text-yellow-500" size={22} />
                         <b className="dark:text-white ">Turno de la mañana </b>
@@ -322,6 +322,7 @@ export default function ListadoVentas() {
                     </Table.HeadCell>
                   </Table.Head>
                   <Table.Head>
+                    <Table.HeadCell>Nro. Venta</Table.HeadCell>
                     <Table.HeadCell>Nombre cliente</Table.HeadCell>
                     <Table.HeadCell>Dirección</Table.HeadCell>
                     <Table.HeadCell>Producto</Table.HeadCell>
@@ -350,6 +351,7 @@ export default function ListadoVentas() {
                       }
                             `}
                             >
+                              <Table.Cell># {venta.venta_id}</Table.Cell>
                               <Table.Cell>{venta.cliente_nombres}</Table.Cell>
                               <Table.Cell>
                                 {venta.direccion_domicilio} {venta.apartameto}
@@ -446,7 +448,7 @@ export default function ListadoVentas() {
               <div className="overflow-x-auto ">
                 <Table className="text-xs ">
                   <Table.Head>
-                    <Table.HeadCell colSpan={8}>
+                    <Table.HeadCell colSpan={9}>
                       <span className="flex items-center gap-2">
                         <FaMoon className="text-blue-500" size={22} />
                         <b className="dark:text-white ">Turno de la tarde </b>
@@ -464,6 +466,7 @@ export default function ListadoVentas() {
                     </Table.HeadCell>
                   </Table.Head>
                   <Table.Head>
+                    <Table.HeadCell>Nro. Venta</Table.HeadCell>
                     <Table.HeadCell>Nombre cliente</Table.HeadCell>
                     <Table.HeadCell>Dirección</Table.HeadCell>
                     <Table.HeadCell>Producto</Table.HeadCell>
@@ -492,6 +495,7 @@ export default function ListadoVentas() {
                       }
                             `}
                             >
+                              <Table.Cell># {venta.venta_id}</Table.Cell>
                               <Table.Cell>{venta.cliente_nombres}</Table.Cell>
                               <Table.Cell>
                                 {venta.direccion_domicilio} {venta.apartameto}

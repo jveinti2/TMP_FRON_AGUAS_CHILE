@@ -10,7 +10,7 @@ import { getListaFormasPagoApi } from "../services/listas.services";
 import { getDomiciliariosApi } from "../services/domiciliarios.services";
 
 export default function useFormaPago() {
-  const [loadingFormasPago, setLoadingFormasPago] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [formasPago, setFormasPago] = useState([]);
   const [domiciliarios, setDomiciliarios] = useState([]);
 
@@ -18,6 +18,7 @@ export default function useFormaPago() {
     getListaFormasPagoApi().then((response) => {
       setFormasPago(response.formas_pago);
     });
+
     getDomiciliariosApi().then((response) => {
       setDomiciliarios(response.domiciliarios);
     });

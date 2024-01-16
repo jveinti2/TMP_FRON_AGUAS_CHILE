@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import useCierreMes from "../hooks/useCierreMes";
+import moment from "moment-timezone";
 
 export default function FiltroFechaCierreMes() {
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(
+    moment().tz("America/Santiago").format("YYYY-MM-DD")
+  );
   const { getListCierreMes } = useCierreMes();
   const inputRef = useRef();
 

@@ -21,12 +21,13 @@ import { getDomiciliariosApi } from "../services/domiciliarios.services";
 import { getListaFormasPagoApi } from "../services/listas.services";
 import ModalClientes from "./ModalClientes";
 import toFormatDate from "../utils/toFormatDate";
+import moment from "moment-timezone";
 
 export default function ModalVentas({ ventaEdit }) {
   const [novedad, setNovedad] = useState("");
   const [selectedOption, setSelectedOption] = useState(null);
   const [fechaVenta, setFechaVenta] = useState(
-    new Date().toISOString().slice(0, 10)
+    moment().tz("America/Santiago").format("YYYY-MM-DD")
   );
 
   const [filterClienteSelected, setFilterClienteSelected] = useState("");
@@ -46,7 +47,7 @@ export default function ModalVentas({ ventaEdit }) {
   const modalVenta = true;
 
   useEffect(() => {
-    // seleccionar el elemento con id fh_creacion y name fh_creacion
+    setFechaVenta(moment().tz("America/Santiago").format("YYYY-MM-DD"));
     const dateInput = document.querySelector(
       "#fh_creacion[name='fh_creacion']"
     );

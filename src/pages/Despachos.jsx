@@ -19,6 +19,7 @@ import ButtonReload from "../components/ButtonReload";
 import ModalDetalle from "../components/ModalDetalle";
 import ModalObservacionVenta from "../components/ModalObservacionVenta";
 import Echo from "laravel-echo";
+import moment from "moment-timezone";
 
 import {
   postRecogerBidonesApi,
@@ -33,12 +34,18 @@ export default function Despachos() {
   const [loading, setLoading] = useState(true);
   const { handleEntregarDomicilio, handleFormaPago } = useFormaPago();
   const [domiciliarios, setDomiciliarios] = useState([]);
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(
+    moment().tz("America/Santiago").format("YYYY-MM-DD")
+  );
 
   useEffect(() => {
     if (loading) {
       getVentasApi().then((response) => {
-        setDomicilios(response.ventas.filter((venta) => venta.domicilio));
+        setDomicilios(
+          response.ventas
+            .sort((a, b) => b.venta_id - a.venta_id)
+            .filter((venta) => venta.domicilio)
+        );
         setDomiciliosPendientes(response.domicilios_pendientes);
         setBidonesPendientes(response.pendiente_recoger_bidones);
       });
@@ -263,13 +270,6 @@ export default function Despachos() {
           </h2>
         </div>
         <div className="md:w-1/4 flex items-center gap-2">
-          {/* <Datepicker
-              className="w-full"
-              language="es-ES"
-              labelClearButton="Limpiar"
-              labelTodayButton="Hoy"
-              onSelectedDateChanged={handleDateChange}
-            /> */}
           <input
             id="date"
             type="date"

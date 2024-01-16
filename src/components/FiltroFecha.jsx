@@ -1,10 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import useVentas from "../hooks/useVentas";
 import ButtonReload from "./ButtonReload";
+import moment from "moment-timezone";
 
 export default function FiltroFecha() {
   const { getListVentas, realoadData } = useVentas();
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  // fecha de chile
+  const [date, setDate] = useState(
+    moment().tz("America/Santiago").format("YYYY-MM-DD")
+  );
   const inputRef = useRef();
 
   const data_form = {

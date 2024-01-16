@@ -18,7 +18,6 @@ import {
   FaPlus,
   FaCircleExclamation,
   FaCircleMinus,
-  FaCircleInfo,
 } from "react-icons/fa6";
 import useModulos from "../hooks/useModulos";
 import { DashboardContext } from "../context/Dashboard";
