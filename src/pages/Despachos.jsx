@@ -17,7 +17,7 @@ import toFormatDate from "../utils/toFormatDate";
 import { getDomiciliariosApi } from "../services/domiciliarios.services";
 import ButtonReload from "../components/ButtonReload";
 import ModalDetalle from "../components/ModalDetalle";
-import ModalObservacionVenta from "../components/ModalObservacionVenta";
+// import ModalObservacionVenta from "../components/ModalObservacionVenta";
 import Echo from "laravel-echo";
 import moment from "moment-timezone";
 
@@ -394,10 +394,10 @@ export default function Despachos() {
                               </Table.Cell>
                               <Table.Cell>
                                 {domicilio.observacion}
-                                <ModalObservacionVenta
+                                {/* <ModalObservacionVenta
                                   venta={domicilio}
                                   setLoading={setLoading}
-                                />
+                                /> */}
                               </Table.Cell>
 
                               <Table.Cell className="flex items-center gap-2">
@@ -595,10 +595,10 @@ export default function Despachos() {
                               </Table.Cell>
                               <Table.Cell>
                                 {domicilio.observacion}
-                                <ModalObservacionVenta
+                                {/* <ModalObservacionVenta
                                   venta={domicilio}
                                   setLoading={setLoading}
-                                />
+                                /> */}
                               </Table.Cell>
 
                               <Table.Cell className="flex items-center gap-2">
