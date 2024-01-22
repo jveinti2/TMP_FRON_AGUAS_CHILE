@@ -135,9 +135,9 @@ export default function useVentas() {
               {}
             ),
 
-            lista_ventas_sitio: response.ventas.filter(
-              (venta) => !venta.domicilio && !venta.donacion
-            ),
+            lista_ventas_sitio: response.ventas
+              .sort((a, b) => b.venta_id - a.venta_id)
+              .filter((venta) => !venta.domicilio && !venta.donacion),
             lista_ventas_domicilio: response.ventas
               .sort((a, b) => b.venta_id - a.venta_id)
               .filter((venta) => venta.domicilio && !venta.donacion),
