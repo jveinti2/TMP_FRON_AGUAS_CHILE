@@ -3,11 +3,11 @@ import { FaPlus, FaPen } from "react-icons/fa";
 import { Button, Label, Modal, Textarea } from "flowbite-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import useFormaPago from "../hooks/useFormaPago";
+import useObservacionVenta from "../hooks/useObservacionVenta";
 
 export default function ModalObservacionVenta({ venta, setLoading }) {
   const [openModal, setOpenModal] = useState(undefined);
-  const { postObservacionVenta } = useFormaPago();
+  const { postObservacionVenta } = useObservacionVenta();
 
   const formik = useFormik({
     initialValues: {
