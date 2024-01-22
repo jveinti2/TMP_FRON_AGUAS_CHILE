@@ -6,6 +6,7 @@ import {
   Button,
 } from "flowbite-react";
 import { FaCircleUser } from "react-icons/fa6";
+import CajaNotificaciones from "./CajaNotificaciones";
 
 export default function NavbarMenu() {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -13,6 +14,8 @@ export default function NavbarMenu() {
   return (
     <Navbar className="rounded justify-end">
       <div className="flex w-full justify-end gap-2 items-center">
+        <CajaNotificaciones />
+
         <DarkThemeToggle />
         <Dropdown
           arrowIcon={false}
