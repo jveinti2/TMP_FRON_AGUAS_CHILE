@@ -21,6 +21,8 @@ export const postModuloEdificio = async (data_form) => {
   }
 };
 export const postPasswordApi = async (data_form) => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  data_form["domiciliario_id"] = user.id;
   try {
     const { data } = await api.post(`modulos/update_password`, data_form);
     return data;
@@ -30,6 +32,8 @@ export const postPasswordApi = async (data_form) => {
 };
 
 export const postReloadModulosApi = async (data_form) => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  data_form["domiciliario_id"] = user.id;
   try {
     const { data } = await api.post(`modulos/reload`, data_form);
     return data;
