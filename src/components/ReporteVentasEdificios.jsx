@@ -75,7 +75,7 @@ export default function ReporteVentasEdificios() {
             <Select id="Modulo" required>
               <option>Seleccione una opcion</option>
               {modulosFiltrados.map((modulo) => (
-                <option key={modulo.id} value={modulo.id}>
+                <option key={modulo.id} value={modulo.modulo_id}>
                   {modulo.nombre}
                 </option>
               ))}
