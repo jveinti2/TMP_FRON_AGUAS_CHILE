@@ -20,6 +20,7 @@ import ModalDetalle from "../components/ModalDetalle";
 import ModalObservacionVenta from "../components/ModalObservacionVenta";
 import Echo from "laravel-echo";
 import moment from "moment-timezone";
+import constants from "../utils/constants";
 
 import {
   postRecogerBidonesApi,
@@ -81,8 +82,16 @@ export default function Despachos() {
       });
   }, []);
 
-  const sendWhatsapp = (telefono) => {
-    window.open(`https://api.whatsapp.com/send?phone=${telefono}&text=Hola,`);
+  const sendWhatsapp = (
+    modulo_nombre,
+    modulo_contrasena,
+    telefono,
+    venta_id
+  ) => {
+    const mensaje = `Hola!%20somos%20VN%20AGUA%20PURIFICADA%20%F0%9F%91%8B%0AGracias%20por%20tu%20compra,%20por%20favor%20recoge%20tu%20bid%C3%B3n%20en:%0A*Modulo*:%20${modulo_nombre}%0A*Contrase%C3%B1a:*%20${modulo_contrasena}%0A%0ASi%20deseas%20m%C3%A1s%20detalle%20puedes%20descargar%20tu%20recibo%20aqu%C3%AD%20%F0%9F%91%89%20${constants.API_URL}ventas/pdf/${venta_id}`;
+    window.open(
+      `https://api.whatsapp.com/send?phone=${telefono}&text=${mensaje}`
+    );
   };
 
   const handleFiltroChange = (event) => {
@@ -439,11 +448,18 @@ export default function Despachos() {
                               <Table.Cell>
                                 <div className="flex items-center gap-2">
                                   <ModalDetalle venta={domicilio} />
-                                  <FaWhatsapp
+                                  {/* <FaWhatsapp
                                     onClick={() => {
-                                      sendWhatsapp(domicilio.telefono);
+                                      sendWhatsapp(
+                                        domicilio.modulo_nombre,
+                                        domicilio.modulo_contrasena,
+                                        domicilio.telefono,
+                                        domicilio.venta_id
+                                      );
                                     }}
                                     className={`cursor-pointer text-green-500 hover:text-green-700
+                                  
+
                               ${
                                 domicilio.estado_domicilio != 2
                                   ? " bg-[#59b377] font-semibold text-white border-gray-600 dark:bg-[#3e7e54] dark:text-white"
@@ -451,7 +467,7 @@ export default function Despachos() {
                               }
                               `}
                                     size={22}
-                                  />
+                                  /> */}
                                   {/* Buttón con el flujo completo */}
                                   {domicilio.estado_domicilio === 2 && (
                                     <Button
@@ -640,9 +656,14 @@ export default function Despachos() {
                               <Table.Cell>
                                 <div className="flex items-center gap-2">
                                   <ModalDetalle venta={domicilio} />
-                                  <FaWhatsapp
+                                  {/* <FaWhatsapp
                                     onClick={() => {
-                                      sendWhatsapp(domicilio.telefono);
+                                      sendWhatsapp(
+                                        domicilio.modulo_nombre,
+                                        domicilio.modulo_contrasena,
+                                        domicilio.telefono,
+                                        domicilio.venta_id
+                                      );
                                     }}
                                     className={`cursor-pointer text-green-500 hover:text-green-700
                               ${
@@ -652,7 +673,7 @@ export default function Despachos() {
                               }
                               `}
                                     size={22}
-                                  />
+                                  /> */}
                                   {/* Buttón con el flujo completo */}
                                   {domicilio.estado_domicilio === 2 && (
                                     <Button
@@ -794,9 +815,14 @@ export default function Despachos() {
                             </Badge>
                           </Table.Cell>
                           <Table.Cell className="flex items-center gap-2">
-                            <FaWhatsapp
+                            {/* <FaWhatsapp
                               onClick={() => {
-                                sendWhatsapp(domicilio.telefono);
+                                sendWhatsapp(
+                                  domicilio.modulo_nombre,
+                                  domicilio.modulo_contrasena,
+                                  domicilio.telefono,
+                                  domicilio.venta_id
+                                );
                               }}
                               className={`cursor-pointer text-green-500 hover:text-green-700
                               ${
@@ -806,7 +832,7 @@ export default function Despachos() {
                               }
                               `}
                               size={22}
-                            />
+                            /> */}
                             {/* Buttón con el flujo completo */}
                             {domicilio.estado_domicilio === 2 && (
                               <Button

@@ -8,9 +8,15 @@ import constants from "../utils/constants";
 export default function ListadoDonacionesMes() {
   const { cierreMes } = useContext(CierreMesContext);
 
-  const sendWhatsapp = (telefono, venta_id) => {
+  const sendWhatsapp = (
+    modulo_nombre,
+    modulo_contrasena,
+    telefono,
+    venta_id
+  ) => {
+    const mensaje = `Hola!%20somos%20VN%20AGUA%20PURIFICADA%20%F0%9F%91%8B%0AGracias%20por%20tu%20compra,%20por%20favor%20recoge%20tu%20bid%C3%B3n%20en:%0A*Modulo*:%20${modulo_nombre}%0A*Contrase%C3%B1a:*%20${modulo_contrasena}%0A%0ASi%20deseas%20m%C3%A1s%20detalle%20puedes%20descargar%20tu%20recibo%20aqu%C3%AD%20%F0%9F%91%89%20${constants.API_URL}ventas/pdf/${venta_id}`;
     window.open(
-      `https://api.whatsapp.com/send?phone=${telefono}&text=Hola, te envío el código y detalle de tu compra en el siguiente link ➡️ ${constants.API_URL}ventas/pdf/${venta_id}`
+      `https://api.whatsapp.com/send?phone=${telefono}&text=${mensaje}`
     );
   };
 
@@ -48,7 +54,12 @@ export default function ListadoDonacionesMes() {
                       <Table.Cell className="flex gap-2">
                         <FaWhatsapp
                           onClick={() => {
-                            sendWhatsapp(venta.telefono, venta.venta_id);
+                            sendWhatsapp(
+                              venta.modulo_nombre,
+                              venta.modulo_contrasena,
+                              venta.telefono,
+                              venta.venta_id
+                            );
                           }}
                           className="cursor-pointer text-green-500 hover:text-green-700"
                           size={22}
