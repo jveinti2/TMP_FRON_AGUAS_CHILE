@@ -16,7 +16,7 @@ import * as Yup from "yup";
 import useClientes from "../hooks/useClientes";
 import useGetEdificios from "../hooks/useGetEdificios";
 import useProductos from "../hooks/useProductos";
-import useVentas from "../hooks/useVentas";
+import { useVentas } from "../hooks/useVentas";
 import { getDomiciliariosApi } from "../services/domiciliarios.services";
 import { getListaFormasPagoApi } from "../services/listas.services";
 import ModalClientes from "./ModalClientes";

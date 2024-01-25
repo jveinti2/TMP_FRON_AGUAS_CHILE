@@ -2,7 +2,7 @@ import toast from "react-hot-toast";
 import { api } from "./apiAxios";
 
 export const getVentasApi = async (data) => {
-  toast.loading("Cargando...");
+  toast.loading("Cargando... ventas");
   try {
     const response = await api.post("listas/ventas", data);
     return response.data;

@@ -1,28 +1,12 @@
-import { useState, useRef, useEffect } from "react";
-import useVentas from "../hooks/useVentas";
-import ButtonReload from "./ButtonReload";
-import moment from "moment-timezone";
+import { useEffect } from "react";
+import { useVentas } from "../hooks/useVentas";
 
 export default function FiltroFecha() {
-  const { getListVentas, realoadData } = useVentas();
-  // fecha de chile
-  const [date, setDate] = useState(
-    moment().tz("America/Santiago").format("YYYY-MM-DD")
-  );
-  const inputRef = useRef();
-
-  const data_form = {
-    fh_creacion: "",
-    fh_modificacion: "",
-  };
-
-  const handleDateChange = (date_form) => {
-    setDate(date_form);
-    data_form.fh_creacion = date_form;
-    getListVentas(data_form);
-  };
+  const { getVentas, date } = useVentas();
 
   useEffect(() => {
+    getVentas(date);
+
     const dateInput = document.getElementById("date");
 
     if (dateInput) {
@@ -51,12 +35,11 @@ export default function FiltroFecha() {
           "
           value={date}
           onChange={(e) => {
-            handleDateChange(e.target.value);
+            getVentas(e.target.value);
           }}
-          ref={inputRef}
         />
 
-        <ButtonReload functionName={realoadData} />
+        {/* <ButtonReload functionName={realoadData} /> */}
       </div>
     </>
   );

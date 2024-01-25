@@ -13,7 +13,7 @@ export default function NavbarMenu() {
 
   return (
     <Navbar className="rounded justify-end">
-      <div className="flex w-full justify-end gap-2 items-center">
+      <div className="flex w-full justify-end gap-5 items-center">
         <CajaNotificaciones />
 
         <DarkThemeToggle />

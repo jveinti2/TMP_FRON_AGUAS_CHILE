@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   getVentasApi,
   postVentaApi,
@@ -9,9 +9,13 @@ import toast from "react-hot-toast";
 import { VentasContext } from "../context/Ventas";
 import constants from "../utils/constants";
 import Echo from "laravel-echo";
+import moment from "moment-timezone";
 
-export default function useVentas() {
+export function useVentas() {
   const { setVentas, loading, setLoading } = useContext(VentasContext);
+  const [date, setDate] = useState(
+    moment().tz("America/Santiago").format("YYYY-MM-DD")
+  );
 
   const sendWhatsapp = (
     modulo_nombre,
@@ -24,13 +28,6 @@ export default function useVentas() {
       `https://api.whatsapp.com/send?phone=${telefono}&text=${mensaje}`
     );
   };
-
-  useEffect(() => {
-    if (loading) {
-      getListVentas();
-      setLoading(false);
-    }
-  }, [loading]);
 
   useEffect(() => {
     const options = {
@@ -205,7 +202,10 @@ export default function useVentas() {
           });
         }
       })
-      .catch((error) => console.log(error));
+      .catch((error) => console.log(error))
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const postVenta = async (venta) => {
@@ -294,11 +294,29 @@ export default function useVentas() {
     }, 2000);
   };
 
+  const data_form = {
+    fh_creacion: "",
+    fh_modificacion: "",
+  };
+
+  const getVentas = (date_form) => {
+    setDate(date_form);
+    data_form.fh_creacion = date_form;
+    getListVentas(data_form);
+  };
+
+  // useEffect(() => {
+  //   getListVentas();
+  //   console.log("useVentas");
+  // }, []);
+
   return {
+    date,
     getListVentas,
     postVenta,
     deleteVenta,
     updateDomiciliario,
     realoadData,
+    getVentas,
   };
 }

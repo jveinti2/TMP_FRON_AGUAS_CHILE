@@ -15,10 +15,11 @@ import constants from "../utils/constants";
 import useFormaPago from "../hooks/useFormaPago";
 import { TableHead } from "flowbite-react/lib/esm/components/Table/TableHead";
 import toast from "react-hot-toast";
-import useVentas from "../hooks/useVentas";
+import { useVentas } from "../hooks/useVentas";
 import { getDomiciliariosApi } from "../services/domiciliarios.services";
 import { postUpdateDomiciliarioApi } from "../services/ventas.services";
 import ModalDetalle from "./ModalDetalle";
+
 export default function ListadoVentas() {
   const [domiciliarios, setDomiciliarios] = useState([]);
   const [filtroVentasEdificio, setFiltroVentasEdificio] = useState("");
