@@ -19,7 +19,7 @@ export default function useVentas() {
     telefono,
     venta_id
   ) => {
-    const mensaje = `Hola!%20somos%20VN%20AGUA%20PURIFICADA%20%F0%9F%91%8B%0AGracias%20por%20tu%20compra,%20por%20favor%20recoge%20tu%20bid%C3%B3n%20en:%0A*Modulo*:%20${modulo_nombre}%0A*Contrase%C3%B1a:*%20${modulo_contrasena}%0A%0ASi%20deseas%20m%C3%A1s%20detalle%20puedes%20descargar%20tu%20recibo%20aqu%C3%AD%20%F0%9F%91%89%20${constants.API_URL}ventas/pdf/${venta_id}`;
+    const mensaje = `Hola!%20Somos%20Agua%20Purificada%20Vn%20%F0%9F%91%8B%0AGracias%20por%20tu%20compra,%20por%20favor%20retirar%20tu%20bid%C3%B3n%20en%20el:%0A*MODULO*:%20${modulo_nombre}%0A*CONTRASE%C3%91A:*%20${modulo_contrasena}%0ARecuerde%20que%20ese%20codigo%20estará%20disponible%20solo%20una%20hora.%0A%0ASi%20deseas%20m%C3%A1s%20detalle%20puedes%20descargar%20tu%20recibo%20aqu%C3%AD%20%F0%9F%91%89%20${constants.API_URL}ventas/pdf/${venta_id}`;
     window.open(
       `https://api.whatsapp.com/send?phone=${telefono}&text=${mensaje}`
     );
